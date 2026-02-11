@@ -10,6 +10,7 @@
         .tour-card h3 { margin-top: 0; color: #2c5aa0; }
         .tour-meta { color: #666; font-size: 14px; }
         .load-more-btn { background: #2c5aa0; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 20px 0; }
+        .show-more { background: #5aa02c; color: white; padding: 5px 15px; border: none; border-radius: 3px; cursor: pointer; margin: 10px 0; font-size: 12px; }
         .hidden { display: none; }
     </style>
 </head>
@@ -29,7 +30,9 @@
                 <p><strong>Rating:</strong> ⭐ 4.9 (245 reviews)</p>
                 <p><strong>Price:</strong> Free (tips appreciated)</p>
             </div>
-            <p>Discover the heart of Mexico City with this comprehensive walking tour of the historic center...</p>
+            <p class="description-short">Discover the heart of Mexico City with this comprehensive walking tour of the historic center...</p>
+            <p class="description-full" style="display: none;">Discover the heart of Mexico City with this comprehensive walking tour of the historic center. We'll visit the majestic Metropolitan Cathedral, explore the National Palace with Diego Rivera's famous murals, and walk through the ancient Templo Mayor ruins. You'll learn about the fascinating history from the Aztec Empire to modern times, see the vibrant Zócalo plaza where cultural events take place, and discover hidden architectural gems in the surrounding colonial buildings. This tour includes stops at traditional markets where you can sample local street food.</p>
+            <button class="show-more" onclick="this.previousElementSibling.style.display='block'; this.previousElementSibling.previousElementSibling.style.display='none'; this.style.display='none';">Show More</button>
             <a href="https://www.guruwalk.com/walks/12345">View Details</a>
         </article>
 
@@ -44,7 +47,9 @@
                 <p><strong>Rating:</strong> ⭐ 4.8 (189 reviews)</p>
                 <p><strong>Price:</strong> Free (tips appreciated)</p>
             </div>
-            <p>Explore the vibrant neighborhood of Roma Norte, known for its street art, cafes, and local markets...</p>
+            <p class="description-short">Explore the vibrant neighborhood of Roma Norte, known for its street art, cafes, and local markets...</p>
+            <p class="description-full" style="display: none;">Explore the vibrant neighborhood of Roma Norte, known for its street art, cafes, and local markets. This bohemian district is home to incredible murals by local and international artists, trendy coffee shops, and authentic Mexican eateries. We'll visit the colorful Mercado Roma, walk down tree-lined streets admiring Art Nouveau and Art Deco architecture, and discover the best hidden spots for Instagram-worthy photos. You'll also learn about the neighborhood's transformation from earthquake damage to one of the city's most desirable areas.</p>
+            <button class="show-more" onclick="this.previousElementSibling.style.display='block'; this.previousElementSibling.previousElementSibling.style.display='none'; this.style.display='none';">Read More</button>
             <a href="https://www.guruwalk.com/walks/12346">View Details</a>
         </article>
 

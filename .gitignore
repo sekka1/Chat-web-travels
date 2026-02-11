@@ -33,3 +33,6 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Scraped test data
+data/scraped/test-tour-listings-*/

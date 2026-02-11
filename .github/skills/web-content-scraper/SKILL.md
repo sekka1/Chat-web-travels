@@ -597,6 +597,294 @@ Moss thrives in humidity between 40-60%...
 | humidity-chart.png | example.com | © All rights reserved |
 ```
 
+## Tour Listings Scraper
+
+For scraping tour and event listings from websites like GuruWalk, GetYourGuide, Viator, and similar platforms, use the specialized tour listings scraper script.
+
+### Prerequisites
+
+```bash
+npm install playwright
+npx playwright install chromium
+```
+
+### Usage
+
+```bash
+# Basic usage - scrapes URL and saves to specified directory
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts <url> <output-dir>
+```
+
+**Examples:**
+
+```bash
+# Scrape walking tours from GuruWalk
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
+  https://www.guruwalk.com/walks/mexico-city \
+  ./data/scraped/mexico-city-tours
+
+# Scrape with file:// URL for testing
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
+  file:///path/to/test-tours.html \
+  ./data/scraped/test-tours
+```
+
+### What It Extracts
+
+The scraper extracts structured tour information:
+
+| Field | Description |
+|-------|-------------|
+| `title` | Tour name/title |
+| `guide` | Guide or host name |
+| `description` | **Full tour description** (not truncated) |
+| `url` | Link to tour details |
+| `datetime` | Tour date and time (if available) |
+| `duration` | Tour length (if available) |
+| `location` | Meeting point or area (if available) |
+| `language` | Available languages (if available) |
+| `rating` | User rating/reviews (if available) |
+| `price` | Cost or pricing info (if available) |
+| `imageUrl` | Tour image (if available) |
+
+### Features
+
+#### Multi-Strategy Extraction
+
+The scraper uses multiple strategies to extract data across different website structures:
+
+**Title extraction:**
+- Look for `<h1>`, `<h2>`, `<h3>` elements with tour-related classes
+- Check `[data-testid*="title"]`, `[class*="title"]`, `[class*="name"]`
+
+**Guide extraction:**
+- Look for elements with classes: `guide`, `host`, `organizer`
+- Parse text patterns like "Guide: Name" or "By Name"
+
+**Description extraction (3 strategies):**
+1. **Strategy 1:** Look for elements with `description` in class/id
+   - Prefer **visible** elements over hidden ones
+   - Sort by text length (longest first)
+
+2. **Strategy 2:** Find standalone `<p>` tags outside metadata containers
+   - Only include **visible** paragraphs
+   - Skip metadata sections (`.meta`, `.info`, `.details`)
+   - Exclude text matching patterns like "Guide:", "Date:", etc.
+   - Sort by length (longest first)
+
+3. **Strategy 3:** Extract long sentences from all text (fallback)
+
+#### Description Quality Validation
+
+The scraper validates that extracted descriptions contain meaningful tour information:
+
+**✅ Valid Description:**
+- Contains actual tour content (places, activities, what you'll see)
+- More than 100 characters
+- Not just a repetition of the tour title
+
+**❌ Invalid Description (will attempt to expand):**
+- Description is just the tour title repeated
+- More than 70% of title words appear in a short description
+- Description is just guide name or metadata
+
+#### Truncated Description Detection & Expansion
+
+The scraper automatically detects and expands truncated descriptions:
+
+**Truncation indicators:**
+- Text ending with `...` (three periods)
+- Text ending with `…` (ellipsis character)
+- Text ending with `..` (two periods)
+
+**Expansion process:**
+1. Find all truncated descriptions in tour listings
+2. Look for expand/show more buttons near truncated text:
+   - Button text patterns: "more", "expand", "show", "read", "ver más", "leer más"
+   - Case-insensitive matching
+3. Click buttons to reveal full content
+4. Wait for content to animate/display
+5. Re-extract descriptions (now using visible full content)
+
+**Button detection:**
+```html
+<!-- Detects buttons like these: -->
+<button>Show More</button>
+<button>Read More</button>
+<button>Ver más</button>
+<a href="#">Expand</a>
+<span onclick="...">Show full description</span>
+```
+
+#### "Load More" Button Handling
+
+The scraper automatically clicks "load more" buttons to retrieve all tours:
+
+1. Counts initial visible tours
+2. Searches for "load more" buttons using multiple strategies:
+   - Data attributes: `[data-testid*="load-more"]`
+   - Class names: `[class*="load-more"]`, `[class*="loadMore"]`
+   - Button text containing "more" or "más"
+3. Clicks button and waits for new content to load
+4. Repeats until no more tours are loaded
+5. Tracks total clicks and tours loaded
+
+### Output Structure
+
+```
+<output-dir>/
+├── tours.json           # Structured JSON with all tour data
+├── tours.md            # Human-readable markdown format
+└── _metadata.json      # Scraping metadata (counts, timestamps)
+```
+
+#### tours.json
+
+```json
+[
+  {
+    "title": "Historic Center Walking Tour",
+    "guide": "Carlos Mendez",
+    "description": "Discover the heart of Mexico City with this comprehensive walking tour. We'll visit the majestic Metropolitan Cathedral, explore the National Palace with Diego Rivera's famous murals, and walk through the ancient Templo Mayor ruins. You'll learn about the fascinating history from the Aztec Empire to modern times.",
+    "url": "https://www.guruwalk.com/walks/12345",
+    "datetime": "February 25, 2026 at 10:00 AM",
+    "duration": "2.5 hours",
+    "location": "Palacio de Bellas Artes",
+    "language": "English, Spanish",
+    "rating": "⭐ 4.9 (245 reviews)",
+    "price": "Free (tips appreciated)"
+  }
+]
+```
+
+#### tours.md
+
+```markdown
+# Walking Tours
+
+> Source: https://www.guruwalk.com/walks/mexico-city
+> Scraped: 2026-02-11T10:30:00.000Z
+> Initial tours visible: 8
+> "Load more" clicks: 2
+> Additional tours loaded: 12
+> Total tours: 20
+
+---
+
+## 1. Historic Center Walking Tour
+
+**Guide:** Carlos Mendez
+
+**Description:** Discover the heart of Mexico City with this comprehensive walking tour...
+
+**More Info:** [View Tour](https://www.guruwalk.com/walks/12345)
+
+---
+```
+
+#### _metadata.json
+
+```json
+{
+  "sourceUrl": "https://www.guruwalk.com/walks/mexico-city",
+  "scrapedAt": "2026-02-11T10:30:00.000Z",
+  "initialCount": 8,
+  "loadMoreClicks": 2,
+  "finalCount": 20,
+  "additionalLoaded": 12,
+  "outputDir": "./data/scraped/mexico-city-tours"
+}
+```
+
+### Description Quality Guidelines
+
+When validating scraped tour descriptions for current and future iterations:
+
+#### ❌ Invalid Descriptions - Keep Looking
+
+**Description is just repeating the title:**
+```
+Title: "Historic Center Walking Tour"
+Description: "Historic Center Walking Tour"  ← Invalid, just the title
+```
+
+**Description is guide name or metadata:**
+```
+Title: "Roma Norte Street Art Tour"
+Description: "Maria Rodriguez"  ← Invalid, this is the guide name
+```
+
+**Description is too generic:**
+```
+Title: "Food Market Tour"
+Description: "A tour of the market"  ← Invalid, no useful information
+```
+
+#### ✅ Valid Descriptions - What We Want
+
+**Describes what you'll see and do:**
+```
+Title: "Historic Center Walking Tour"
+Description: "Discover the heart of Mexico City with this comprehensive
+walking tour of the historic center. We'll visit the majestic Metropolitan
+Cathedral, explore the National Palace with Diego Rivera's famous murals,
+and walk through the ancient Templo Mayor ruins. You'll learn about the
+fascinating history from the Aztec Empire to modern times, see the vibrant
+Zócalo plaza where cultural events take place, and discover hidden
+architectural gems in the surrounding colonial buildings."
+```
+
+**Contains specific places, activities, and details:**
+- ✅ Mentions specific locations (Metropolitan Cathedral, National Palace)
+- ✅ Describes activities (explore, walk through, learn about)
+- ✅ Includes details (Diego Rivera murals, Aztec Empire history)
+- ✅ Full sentences with context
+
+#### Detecting Truncation
+
+**If description ends with these patterns, it's truncated:**
+- `...` (three periods)
+- `…` (ellipsis character)
+- `..` (two periods)
+- Any variation in different languages
+
+**Example truncated description:**
+```
+"Discover the heart of Mexico City with this comprehensive walking tour..."
+```
+
+**When truncation is detected:**
+1. Look for expand/show more buttons nearby
+2. Click button to reveal full content
+3. Re-extract the now-visible full description
+4. Verify the "..." is gone and content is complete
+
+### Generic Design for Multiple Tour Sites
+
+This scraper is designed to work across different tour listing websites:
+
+**Supported site types:**
+- GuruWalk-style listings
+- GetYourGuide tour pages
+- Viator experiences
+- Local tour company websites
+- Event listing pages
+
+**How it adapts:**
+- Multiple CSS selector strategies for each data field
+- Pattern matching for different HTML structures
+- Text pattern recognition (e.g., "Guide: Name")
+- Flexible button detection for different UI implementations
+- Visibility-aware extraction (prefers visible over hidden content)
+
+**Adding new extraction techniques:**
+
+As you encounter new website variations:
+1. The multi-strategy pattern makes it easy to add new selectors
+2. Add new strategies to the extraction arrays
+3. Test with the new site structure
+4. Strategies are tried in order until one succeeds
+
 ## Limitations
 
 - **JavaScript-rendered pages**: Content loaded via JavaScript may not be captured

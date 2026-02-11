@@ -234,6 +234,97 @@ class TourListingScraper {
   }
 
   /**
+   * Expand truncated descriptions by clicking "show more" buttons
+   */
+  private async expandDescriptions(): Promise<number> {
+    if (!this.page) throw new Error('Page not initialized');
+
+    console.log('🔍 Looking for truncated descriptions to expand...');
+
+    const expandedCount = await this.page.evaluate(() => {
+      let count = 0;
+
+      // Find all tour containers
+      const selectors = [
+        '[data-testid*="tour"]',
+        '.tour-item',
+        '.tour-card',
+        '[class*="tour-"]',
+        '[class*="Tour"]',
+        'article',
+        '[role="article"]',
+      ];
+
+      let tourElements: Element[] = [];
+      for (const selector of selectors) {
+        tourElements = Array.from(document.querySelectorAll(selector));
+        if (tourElements.length > 0) {
+          break;
+        }
+      }
+
+      for (const element of tourElements) {
+        // Look for description text ending with "..." or similar truncation indicators
+        const paragraphs = Array.from(element.querySelectorAll('p'));
+        for (const p of paragraphs) {
+          const text = p.textContent?.trim() || '';
+
+          // Check if text appears truncated
+          const isTruncated = text.endsWith('...') ||
+                             text.endsWith('…') ||
+                             text.endsWith('..') ||
+                             text.match(/\.{2,}$/);
+
+          if (isTruncated) {
+            // Look for expand/show more buttons near this paragraph
+            const expandSelectors = [
+              'button[class*="expand"]',
+              'button[class*="more"]',
+              'button[class*="show"]',
+              'a[class*="expand"]',
+              'a[class*="more"]',
+              'a[class*="show-more"]',
+              'span[class*="expand"]',
+              'div[class*="expand"]',
+            ];
+
+            for (const btnSelector of expandSelectors) {
+              // Look within the same element or nearby siblings
+              const btn = element.querySelector(btnSelector) as HTMLElement;
+              if (btn && btn.offsetParent !== null) {
+                // Check if button text suggests it's for expanding
+                const btnText = btn.textContent?.toLowerCase() || '';
+                if (btnText.includes('more') ||
+                    btnText.includes('expand') ||
+                    btnText.includes('show') ||
+                    btnText.includes('read') ||
+                    btnText.includes('ver más') ||
+                    btnText.includes('leer más')) {
+                  btn.click();
+                  count++;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return count;
+    });
+
+    if (expandedCount > 0) {
+      console.log(`  ✅ Expanded ${expandedCount} truncated descriptions`);
+      // Wait for content to load after expansion
+      await this.page.waitForTimeout(1000);
+    } else {
+      console.log('  ℹ️  No truncated descriptions found');
+    }
+
+    return expandedCount;
+  }
+
+  /**
    * Extract tour information from the page
    */
   private async extractTours(): Promise<Tour[]> {
@@ -302,28 +393,56 @@ class TourListingScraper {
         }
 
         // Extract description - try multiple strategies
-        // Strategy 1: Look for elements with "description" in class/id
-        let descEl = element.querySelector('[class*="description"], [class*="Description"], [id*="description"]');
-        if (descEl && descEl.textContent?.trim()) {
-          tour.description = descEl.textContent.trim();
+        // Strategy 1: Look for elements with "description" in class/id (prefer visible, longer content)
+        const descElements = Array.from(element.querySelectorAll('[class*="description"], [class*="Description"], [id*="description"]'));
+        if (descElements.length > 0) {
+          // Filter to visible elements and sort by text length (longest first)
+          const visibleDesc = descElements
+            .filter((el: Element) => {
+              const htmlEl = el as HTMLElement;
+              return htmlEl.offsetParent !== null && // Element is visible
+                     getComputedStyle(htmlEl).display !== 'none' &&
+                     getComputedStyle(htmlEl).visibility !== 'hidden';
+            })
+            .map((el: Element) => ({
+              element: el,
+              text: el.textContent?.trim() || ''
+            }))
+            .filter(item => item.text.length > 20)
+            .sort((a, b) => b.text.length - a.text.length);
+
+          if (visibleDesc.length > 0) {
+            tour.description = visibleDesc[0].text;
+          }
         }
 
-        // Strategy 2: Find standalone <p> tags that are NOT inside metadata containers
+        // Strategy 2: Find standalone <p> tags that are NOT inside metadata containers (prefer visible, longer content)
         if (!tour.description) {
-          const paragraphs = Array.from(element.querySelectorAll('p'));
-          for (const p of paragraphs) {
-            const text = p.textContent?.trim() || '';
-            // Skip if it's inside a metadata container or if it looks like metadata
-            const parent = p.parentElement;
-            const isInMeta = parent?.className?.includes('meta') ||
-                           parent?.className?.includes('info') ||
-                           parent?.className?.includes('details');
-            const looksLikeMetadata = /^(Guide|Host|Date|Time|Duration|Location|Language|Rating|Price|By):/i.test(text);
+          const paragraphs = Array.from(element.querySelectorAll('p'))
+            .filter((p: Element) => {
+              const htmlP = p as HTMLElement;
+              // Only include visible paragraphs
+              return htmlP.offsetParent !== null &&
+                     getComputedStyle(htmlP).display !== 'none' &&
+                     getComputedStyle(htmlP).visibility !== 'hidden';
+            })
+            .map((p: Element) => ({
+              element: p,
+              text: p.textContent?.trim() || '',
+              parent: (p as HTMLElement).parentElement
+            }))
+            .filter(item => {
+              // Skip if it's inside a metadata container or if it looks like metadata
+              const isInMeta = item.parent?.className?.includes('meta') ||
+                             item.parent?.className?.includes('info') ||
+                             item.parent?.className?.includes('details');
+              const looksLikeMetadata = /^(Guide|Host|Date|Time|Duration|Location|Language|Rating|Price|By):/i.test(item.text);
+              return !isInMeta && !looksLikeMetadata && item.text.length > 20;
+            })
+            .sort((a, b) => b.text.length - a.text.length); // Sort by length, longest first
 
-            if (!isInMeta && !looksLikeMetadata && text.length > 20) {
-              tour.description = text;
-              break;
-            }
+          if (paragraphs.length > 0) {
+            tour.description = paragraphs[0].text;
           }
         }
 
@@ -338,6 +457,19 @@ class TourListingScraper {
           );
           if (sentences.length > 0) {
             tour.description = sentences[0].trim();
+          }
+        }
+
+        // Validate description quality
+        if (tour.description) {
+          // Check if description is just a repetition of the title
+          const titleWords = tour.title.toLowerCase().split(/\s+/);
+          const descWords = tour.description.toLowerCase().split(/\s+/);
+          const matchingWords = titleWords.filter(w => descWords.includes(w) && w.length > 3);
+
+          // If more than 70% of title words are in description and description is short, it's likely just repeating the title
+          if (matchingWords.length / titleWords.length > 0.7 && tour.description.length < 100) {
+            tour.description = undefined; // Mark as invalid, will try to expand
           }
         }
 
@@ -455,6 +587,10 @@ class TourListingScraper {
     console.log(`   • "Load more" clicks: ${this.metadata.loadMoreClicks}`);
     console.log(`   • Additional tours loaded: ${this.metadata.additionalLoaded}`);
     console.log(`   • Total tours: ${this.metadata.finalCount}`);
+
+    // Expand any truncated descriptions
+    console.log('');
+    await this.expandDescriptions();
 
     // Extract all tour data
     const tours = await this.extractTours();
