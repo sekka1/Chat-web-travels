@@ -716,6 +716,45 @@ The scraper automatically detects and expands truncated descriptions:
 <span onclick="...">Show full description</span>
 ```
 
+#### Detail Page Description Fetching
+
+**Important:** Most tour listing pages don't show full descriptions—they only display titles and metadata. To get actual tour descriptions, the scraper automatically:
+
+1. Extracts tour URLs from the listing page
+2. Visits each tour's individual detail page
+3. Extracts the full description using multiple strategies:
+   - Elements with "description", "about", "overview" in class/ID
+   - Long paragraphs in main content areas
+4. Merges descriptions back into the tour data
+
+**Progress reporting:**
+```
+🔗 Fetching full descriptions from 30 tour detail pages...
+  ✅ [1/30] Fetched description (1163 chars)
+  ✅ [2/30] Fetched description (987 chars)
+  ...
+📊 Successfully fetched 28 out of 30 descriptions
+```
+
+**Configuration:**
+- Set `maxDetailPages: 0` for unlimited (fetches all tours)
+- Set `maxDetailPages: 10` to limit (useful for testing or faster runs)
+
+**Result:** Instead of truncated metadata like:
+```
+Description: "Historic Center Walking Tour...4.79(2011)2 hours..."
+```
+
+You get full, detailed descriptions:
+```
+Description: "If you're planning your first visit to the vibrant Mexico City,
+this is the perfect tour for you! Designed for travelers looking to explore the
+historical and cultural richness of this metropolis in a short time, our tour
+will take you on a fascinating journey through time. Complete Exploration:
+Discover the three great eras of Mexico: pre-Hispanic Mexico, the viceroyalty,
+and the Republic. Local Flavors: Learn how to identify the best places to eat..."
+```
+
 #### "Load More" Button Handling
 
 The scraper automatically clicks "load more" buttons to retrieve all tours:

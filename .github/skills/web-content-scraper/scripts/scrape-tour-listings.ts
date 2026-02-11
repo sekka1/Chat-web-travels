@@ -84,6 +84,8 @@ const CONFIG = {
   loadMoreWaitTime: 3000,
   /** Maximum number of "load more" clicks */
   maxLoadMoreClicks: 10,
+  /** Maximum number of detail pages to fetch descriptions from (0 = unlimited) */
+  maxDetailPages: 0,
   /** User agent string */
   userAgent:
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -322,6 +324,100 @@ class TourListingScraper {
     }
 
     return expandedCount;
+  }
+
+  /**
+   * Fetch full descriptions from tour detail pages
+   * Returns a map of URL to description
+   */
+  private async fetchDetailPageDescriptions(tourUrls: string[]): Promise<Map<string, string>> {
+    if (!this.page) throw new Error('Page not initialized');
+
+    const descriptions = new Map<string, string>();
+    let fetchedCount = 0;
+
+    // Apply limit if configured
+    const urlsToFetch = CONFIG.maxDetailPages > 0
+      ? tourUrls.slice(0, CONFIG.maxDetailPages)
+      : tourUrls;
+
+    console.log(`\n🔗 Fetching full descriptions from ${urlsToFetch.length} tour detail pages...`);
+    if (CONFIG.maxDetailPages > 0 && tourUrls.length > urlsToFetch.length) {
+      console.log(`   ℹ️  Limited to ${CONFIG.maxDetailPages} pages (${tourUrls.length} total)`);
+    }
+
+    for (const url of urlsToFetch) {
+      try {
+        // Navigate to the detail page
+        await this.page.goto(url, {
+          waitUntil: 'domcontentloaded',
+          timeout: CONFIG.pageTimeout,
+        });
+        await this.page.waitForTimeout(2000); // Wait for content to load
+
+        // Extract description from detail page using multiple strategies
+        const description = await this.page.evaluate(() => {
+          // Strategy 1: Look for elements with "description" in class/id
+          const descSelectors = [
+            '[class*="description"]',
+            '[id*="description"]',
+            '[class*="about"]',
+            '[id*="about"]',
+            '[class*="overview"]',
+            '[class*="detail"]',
+          ];
+
+          for (const selector of descSelectors) {
+            const elements = Array.from(document.querySelectorAll(selector));
+            for (const el of elements) {
+              const htmlEl = el as HTMLElement;
+              // Check if visible and has substantial text
+              if (htmlEl.offsetParent !== null &&
+                  htmlEl.textContent &&
+                  htmlEl.textContent.trim().length > 100) {
+                return htmlEl.textContent.trim();
+              }
+            }
+          }
+
+          // Strategy 2: Look for long paragraphs in main content areas
+          const mainSelectors = ['main', 'article', '[role="main"]', '.content', '.main-content'];
+          for (const selector of mainSelectors) {
+            const main = document.querySelector(selector);
+            if (main) {
+              const paragraphs = Array.from(main.querySelectorAll('p'))
+                .filter((p: Element) => {
+                  const htmlP = p as HTMLElement;
+                  return htmlP.offsetParent !== null &&
+                         (htmlP.textContent?.trim().length || 0) > 100;
+                })
+                .map((p: Element) => (p.textContent?.trim() || ''));
+
+              if (paragraphs.length > 0) {
+                // Join multiple paragraphs to form complete description
+                return paragraphs.slice(0, 3).join(' '); // Take first 3 substantial paragraphs
+              }
+            }
+          }
+
+          return '';
+        });
+
+        if (description && description.length > 100) {
+          descriptions.set(url, description);
+          fetchedCount++;
+          console.log(`  ✅ [${fetchedCount}/${tourUrls.length}] Fetched description (${description.length} chars)`);
+        } else {
+          console.log(`  ⚠️  [${fetchedCount}/${tourUrls.length}] No description found for ${url}`);
+        }
+
+      } catch (error) {
+        console.log(`  ❌ Failed to fetch ${url}: ${error}`);
+      }
+    }
+
+    console.log(`\n📊 Successfully fetched ${fetchedCount} out of ${urlsToFetch.length} descriptions`);
+    return descriptions;
   }
 
   /**
@@ -594,6 +690,21 @@ class TourListingScraper {
 
     // Extract all tour data
     const tours = await this.extractTours();
+
+    // Fetch full descriptions from detail pages for ALL tours with URLs
+    // (listing pages often don't have real descriptions, only metadata)
+    const toursWithUrls = tours.filter(tour => tour.url);
+    if (toursWithUrls.length > 0) {
+      const tourUrls = toursWithUrls.map(t => t.url!);
+      const descriptions = await this.fetchDetailPageDescriptions(tourUrls);
+
+      // Merge descriptions back into tour data
+      for (const tour of tours) {
+        if (tour.url && descriptions.has(tour.url)) {
+          tour.description = descriptions.get(tour.url);
+        }
+      }
+    }
 
     // Create output directory
     fs.mkdirSync(outputDir, { recursive: true });
