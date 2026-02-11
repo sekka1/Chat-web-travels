@@ -209,39 +209,146 @@ async function main() {
         timeout: CONFIG.pageTimeout,
       });
 
+      await page.waitForTimeout(2000);
+
+      // Scroll page to load all lazy content and trigger load-more buttons
+      console.log('   📜 Scrolling to load all content...');
+      await page.evaluate(async () => {
+        await new Promise<void>((resolve) => {
+          let totalHeight = 0;
+          const distance = 500;
+          const timer = setInterval(() => {
+            const scrollHeight = document.body.scrollHeight;
+            window.scrollBy(0, distance);
+            totalHeight += distance;
+            if (totalHeight >= scrollHeight) {
+              clearInterval(timer);
+              resolve();
+            }
+          }, 100);
+        });
+      });
+
       await page.waitForTimeout(1000);
 
-      // Extract content
-      const { title, content } = await page.evaluate(
+      // Try to click "load more" or "show more" buttons
+      let loadMoreClicked = false;
+      try {
+        loadMoreClicked = await page.evaluate(async () => {
+          const loadMoreSelectors = [
+            'button[class*="load"]',
+            'button[class*="more"]',
+            'button[class*="show"]',
+            'a[class*="load"]',
+            'a[class*="more"]',
+            '.load-more',
+            '.show-more',
+            '[data-testid*="load"]',
+            '[data-testid*="more"]'
+          ];
+
+          let clicked = false;
+          for (const selector of loadMoreSelectors) {
+            const buttons = Array.from(document.querySelectorAll(selector));
+            for (const button of buttons) {
+              const text = button.textContent?.toLowerCase() || '';
+              if (text.includes('load') || text.includes('more') || text.includes('show')) {
+                (button as HTMLElement).click();
+                clicked = true;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+          }
+          return clicked;
+        });
+      } catch (err) {
+        console.log(`   ⚠️  Could not check for load more buttons: ${err}`);
+      }
+
+      if (loadMoreClicked) {
+        console.log('   ✅ Clicked "load more" buttons');
+        await page.waitForTimeout(2000);
+      }
+
+      // Extract content with improved list item detection
+      const { title, content, itemCount } = await page.evaluate(
         ({ contentSelectors, removeSelectors }) => {
           const pageTitle =
             document.querySelector('h1')?.textContent?.trim() ||
             document.title ||
             'Untitled';
 
-          let contentElement: Element | null = null;
-          for (const selector of contentSelectors) {
-            contentElement = document.querySelector(selector);
-            if (contentElement) break;
+          // Try to find list-based content first (e.g., "24 things to do" lists)
+          const listSelectors = [
+            '.articleContent',
+            '[class*="article-content"]',
+            '[class*="list-item"]',
+            '[class*="card"]',
+            '[data-testid*="article"]',
+            'article',
+          ];
+
+          let items: Element[] = [];
+          for (const selector of listSelectors) {
+            const elements = Array.from(document.querySelectorAll(selector));
+            if (elements.length > 1) {
+              items = elements;
+              break;
+            }
           }
 
-          if (!contentElement) {
-            contentElement = document.body;
-          }
+          let contentElement: Element;
+          let itemCount = 0;
 
-          const clone = contentElement.cloneNode(true) as Element;
+          if (items.length > 1) {
+            // We found a list of items - create a container with all of them
+            contentElement = document.createElement('div');
+            items.forEach((item, idx) => {
+              const clone = item.cloneNode(true) as Element;
 
-          for (const selector of removeSelectors) {
-            clone.querySelectorAll(selector).forEach((el) => el.remove());
+              // Remove unwanted elements from each item
+              for (const selector of removeSelectors) {
+                clone.querySelectorAll(selector).forEach((el) => el.remove());
+              }
+
+              contentElement.appendChild(clone);
+
+              // Add separator between items
+              if (idx < items.length - 1) {
+                const separator = document.createElement('hr');
+                contentElement.appendChild(separator);
+              }
+            });
+            itemCount = items.length;
+          } else {
+            // Fallback to finding main content area
+            let mainContent: Element | null = null;
+            for (const selector of contentSelectors) {
+              mainContent = document.querySelector(selector);
+              if (mainContent) break;
+            }
+
+            contentElement = mainContent || document.body;
+
+            const clone = contentElement.cloneNode(true) as Element;
+            for (const selector of removeSelectors) {
+              clone.querySelectorAll(selector).forEach((el) => el.remove());
+            }
+            contentElement = clone;
           }
 
           return {
             title: pageTitle,
-            content: clone.innerHTML,
+            content: contentElement.innerHTML,
+            itemCount,
           };
         },
         { contentSelectors: CONFIG.contentSelectors, removeSelectors: CONFIG.removeSelectors }
       );
+
+      if (itemCount > 0) {
+        console.log(`   📊 Extracted ${itemCount} items from the list`);
+      }
 
       // Save content
       const contentPath = path.join(outputDir, 'content.md');
