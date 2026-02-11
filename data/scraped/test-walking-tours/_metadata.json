@@ -1,0 +1,9 @@
+{
+  "sourceUrl": "file:///home/runner/work/Chat-web-travels/Chat-web-travels/.github/skills/web-content-scraper/scripts/test-walking-tours.html",
+  "scrapedAt": "2026-02-11T23:06:58.018Z",
+  "initialCount": 8,
+  "loadMoreClicks": 1,
+  "finalCount": 8,
+  "additionalLoaded": 0,
+  "outputDir": "./data/scraped/test-walking-tours"
+}

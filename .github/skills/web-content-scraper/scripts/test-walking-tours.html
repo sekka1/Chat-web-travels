@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Walking Tours - GuruWalk Style</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .tour-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .tour-card h3 { margin-top: 0; color: #2c5aa0; }
+        .tour-meta { color: #666; font-size: 14px; }
+        .load-more-btn { background: #2c5aa0; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 20px 0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Walking Tours in Mexico City - February 25, 2026</h1>
+
+    <div id="tours-container">
+        <!-- Initial visible tours -->
+        <article class="tour-card" data-testid="tour-1">
+            <h3>Historic Center & Zócalo Walking Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Carlos Mendez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 10:00 AM</p>
+                <p><strong>Duration:</strong> 2.5 hours</p>
+                <p><strong>Meeting Point:</strong> Palacio de Bellas Artes</p>
+                <p><strong>Language:</strong> English, Spanish</p>
+                <p><strong>Rating:</strong> ⭐ 4.9 (245 reviews)</p>
+                <p><strong>Price:</strong> Free (tips appreciated)</p>
+            </div>
+            <p>Discover the heart of Mexico City with this comprehensive walking tour of the historic center...</p>
+            <a href="https://www.guruwalk.com/walks/12345">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-2">
+            <h3>Street Art & Markets of Roma Norte</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Maria Rodriguez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 2:00 PM</p>
+                <p><strong>Duration:</strong> 3 hours</p>
+                <p><strong>Meeting Point:</strong> Plaza Rio de Janeiro</p>
+                <p><strong>Language:</strong> English</p>
+                <p><strong>Rating:</strong> ⭐ 4.8 (189 reviews)</p>
+                <p><strong>Price:</strong> Free (tips appreciated)</p>
+            </div>
+            <p>Explore the vibrant neighborhood of Roma Norte, known for its street art, cafes, and local markets...</p>
+            <a href="https://www.guruwalk.com/walks/12346">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-3">
+            <h3>Coyoacán & Frida Kahlo Walking Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Ana Garcia</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 11:00 AM</p>
+                <p><strong>Duration:</strong> 2 hours</p>
+                <p><strong>Meeting Point:</strong> Jardín Centenario</p>
+                <p><strong>Language:</strong> English, Spanish</p>
+                <p><strong>Rating:</strong> ⭐ 5.0 (312 reviews)</p>
+                <p><strong>Price:</strong> Free (tips appreciated)</p>
+            </div>
+            <p>Walk through the charming cobblestone streets of Coyoacán and learn about Frida Kahlo's life...</p>
+            <a href="https://www.guruwalk.com/walks/12347">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-4">
+            <h3>Chapultepec Castle & Park Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Juan Lopez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 9:00 AM</p>
+                <p><strong>Duration:</strong> 3.5 hours</p>
+                <p><strong>Meeting Point:</strong> Chapultepec Metro Station</p>
+                <p><strong>Language:</strong> English</p>
+                <p><strong>Rating:</strong> ⭐ 4.7 (156 reviews)</p>
+                <p><strong>Price:</strong> Free (tips appreciated)</p>
+            </div>
+            <p>Visit the magnificent Chapultepec Castle and explore one of the largest city parks in the world...</p>
+            <a href="https://www.guruwalk.com/walks/12348">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-5">
+            <h3>Xochimilco Canals & Floating Gardens</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Diego Martinez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 1:00 PM</p>
+                <p><strong>Duration:</strong> 4 hours</p>
+                <p><strong>Meeting Point:</strong> Xochimilco Pier</p>
+                <p><strong>Language:</strong> English, Spanish</p>
+                <p><strong>Rating:</strong> ⭐ 4.9 (203 reviews)</p>
+                <p><strong>Price:</strong> Free (boat rental separate)</p>
+            </div>
+            <p>Experience the UNESCO World Heritage site of Xochimilco with its ancient canal system...</p>
+            <a href="https://www.guruwalk.com/walks/12349">View Details</a>
+        </article>
+    </div>
+
+    <button class="load-more-btn" id="loadMoreBtn">Load More Tours</button>
+
+    <div id="additional-tours" class="hidden">
+        <!-- Additional tours loaded after clicking "load more" -->
+        <article class="tour-card" data-testid="tour-6">
+            <h3>Teotihuacan Pyramids Sunrise Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Roberto Sanchez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 5:00 AM</p>
+                <p><strong>Duration:</strong> 6 hours</p>
+                <p><strong>Meeting Point:</strong> Terminal Central del Norte</p>
+                <p><strong>Language:</strong> English, Spanish</p>
+                <p><strong>Rating:</strong> ⭐ 5.0 (412 reviews)</p>
+                <p><strong>Price:</strong> $45 USD (transportation included)</p>
+            </div>
+            <p>Watch the sunrise from atop the ancient Pyramids of Teotihuacan on this unforgettable tour...</p>
+            <a href="https://www.guruwalk.com/walks/12350">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-7">
+            <h3>Lucha Libre & Tacos Night Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Miguel Hernandez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 6:00 PM</p>
+                <p><strong>Duration:</strong> 4 hours</p>
+                <p><strong>Meeting Point:</strong> Arena México</p>
+                <p><strong>Language:</strong> English</p>
+                <p><strong>Rating:</strong> ⭐ 4.8 (298 reviews)</p>
+                <p><strong>Price:</strong> $35 USD (includes ticket & tacos)</p>
+            </div>
+            <p>Experience authentic Mexican wrestling followed by the best street tacos in the city...</p>
+            <a href="https://www.guruwalk.com/walks/12351">View Details</a>
+        </article>
+
+        <article class="tour-card" data-testid="tour-8">
+            <h3>Mercado de la Merced Food Tour</h3>
+            <div class="tour-meta">
+                <p><strong>Guide:</strong> Sofia Ramirez</p>
+                <p><strong>Date & Time:</strong> February 25, 2026 at 10:30 AM</p>
+                <p><strong>Duration:</strong> 2.5 hours</p>
+                <p><strong>Meeting Point:</strong> Merced Metro Station</p>
+                <p><strong>Language:</strong> English, Spanish</p>
+                <p><strong>Rating:</strong> ⭐ 4.9 (167 reviews)</p>
+                <p><strong>Price:</strong> Free (food samples extra)</p>
+            </div>
+            <p>Explore one of the largest traditional markets in the Americas and taste authentic Mexican cuisine...</p>
+            <a href="https://www.guruwalk.com/walks/12352">View Details</a>
+        </article>
+    </div>
+
+    <script>
+        document.getElementById('loadMoreBtn').addEventListener('click', function() {
+            const additionalTours = document.getElementById('additional-tours');
+            const toursContainer = document.getElementById('tours-container');
+
+            // Move additional tours to main container
+            while (additionalTours.firstChild) {
+                toursContainer.appendChild(additionalTours.firstChild);
+            }
+
+            // Hide the load more button
+            this.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
