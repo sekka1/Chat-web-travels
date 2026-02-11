@@ -34,7 +34,7 @@ async function runIntegrationTest() {
     await client.start();
     console.log('   ✓ Copilot SDK initialized successfully\n');
 
-    const question = 'what is a live moss wall?';
+    const question = 'what are the best places to visit in Japan?';
     console.log(`2. Asking Copilot: "${question}"`);
 
     // Create a session with GPT-4
@@ -58,15 +58,15 @@ async function runIntegrationTest() {
 
     const lowerResponse = content.toLowerCase();
     const hasRelevantContent =
-      lowerResponse.includes('moss') ||
-      lowerResponse.includes('wall') ||
-      lowerResponse.includes('plant') ||
-      lowerResponse.includes('green');
+      lowerResponse.includes('japan') ||
+      lowerResponse.includes('tokyo') ||
+      lowerResponse.includes('kyoto') ||
+      lowerResponse.includes('travel');
 
     if (!hasRelevantContent) {
-      console.log('   ⚠ Warning: Response may not be relevant to moss walls');
+      console.log('   ⚠ Warning: Response may not be relevant to travel in Japan');
     } else {
-      console.log('   ✓ Response contains relevant content about moss walls');
+      console.log('   ✓ Response contains relevant content about travel in Japan');
     }
 
     console.log('\n=== Integration Test PASSED ===\n');

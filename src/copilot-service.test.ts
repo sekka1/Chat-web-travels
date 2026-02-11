@@ -27,7 +27,7 @@ jest.mock('@github/copilot-sdk', () => {
               // Default mock response for chat
               return Promise.resolve({
                 data: {
-                  content: 'A live moss wall is a vertical garden featuring living moss plants attached to a wall or panel structure. These green installations bring natural beauty indoors while improving air quality and providing sound insulation.',
+                  content: 'Japan is a fascinating destination that blends ancient traditions with cutting-edge technology. Popular attractions include Tokyo for urban culture, Kyoto for historic temples, and Mount Fuji for natural beauty. The best time to visit is during spring for cherry blossoms or fall for autumn foliage.',
                 },
               });
             }),
@@ -57,11 +57,11 @@ describe('CopilotService Unit Tests', () => {
   });
 
   /**
-   * Test case requested by user: Ask "what is a live moss wall?" and verify response
+   * Test case: Ask about travel destination and verify response
    * This test uses mocks to verify the service works without requiring Copilot auth
    */
-  it('should get a response for "what is a live moss wall?"', async () => {
-    const question = 'what is a live moss wall?';
+  it('should get a response for "what are the best places to visit in Japan?"', async () => {
+    const question = 'what are the best places to visit in Japan?';
 
     const response = await copilotService.getResponse(question);
 
@@ -70,10 +70,10 @@ describe('CopilotService Unit Tests', () => {
     expect(typeof response).toBe('string');
     expect(response.length).toBeGreaterThan(0);
 
-    // The mocked response should contain relevant information about moss walls
+    // The mocked response should contain relevant information about travel in Japan
     const lowerResponse = response.toLowerCase();
-    expect(lowerResponse).toContain('moss');
-    expect(lowerResponse).toContain('wall');
+    expect(lowerResponse).toContain('japan');
+    expect(lowerResponse).toContain('tokyo');
   });
 
   /**

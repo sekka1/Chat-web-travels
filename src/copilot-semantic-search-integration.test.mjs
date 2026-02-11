@@ -159,13 +159,13 @@ async function runIntegrationTest() {
     console.log('✓ Copilot SDK initialized\n');
 
     const sampleDocs = [
-      { title: 'Moss Care Guide', snippet: 'General care information for moss plants including watering, light, and maintenance' },
-      { title: 'Watering Schedule', snippet: 'Best practices for watering moss walls, including frequency and water quality' },
-      { title: 'Light Requirements', snippet: 'Proper lighting conditions for moss growth and placement recommendations' },
-      { title: 'Troubleshooting Brown Moss', snippet: 'Common problems when moss turns brown and how to fix them' },
+      { title: 'Japan Travel Guide', snippet: 'General information for visiting Japan including transportation, culture, and top attractions' },
+      { title: 'Budget Travel Tips', snippet: 'Best practices for budget travel, including saving money on flights, accommodation, and food' },
+      { title: 'Best Time to Visit', snippet: 'Optimal seasons for travel to different destinations and weather considerations' },
+      { title: 'Packing for Japan', snippet: 'Essential items to pack for a trip to Japan and cultural considerations' },
     ];
 
-    const query1 = 'How often should I water my moss?';
+    const query1 = 'How can I save money while traveling?';
     console.log(`Query: "${query1}"`);
     console.log('Sample documents:');
     sampleDocs.forEach((doc, i) => console.log(`  [${i}] ${doc.title}`));
@@ -174,31 +174,31 @@ async function runIntegrationTest() {
     console.log(`\nCopilot ranking: [${ranking1.join(', ')}]`);
     console.log(`Top result: [${ranking1[0]}] ${sampleDocs[ranking1[0]].title}`);
 
-    // Verify the ranking makes sense - watering-related docs should be ranked high
+    // Verify the ranking makes sense - budget-related docs should be ranked high
     const topDoc = sampleDocs[ranking1[0]];
-    if (topDoc.title.toLowerCase().includes('water') || topDoc.snippet.toLowerCase().includes('water')) {
-      console.log('✓ Top result is watering-related (semantically correct)\n');
+    if (topDoc.title.toLowerCase().includes('budget') || topDoc.snippet.toLowerCase().includes('budget')) {
+      console.log('✓ Top result is budget-related (semantically correct)\n');
     } else {
-      console.log(`⚠ Warning: Expected watering-related document, got "${topDoc.title}"\n`);
+      console.log(`⚠ Warning: Expected budget-related document, got "${topDoc.title}"\n`);
     }
 
     // Test 2: Intent Understanding
-    console.log('Test 2: Intent Understanding - Problem vs Species');
+    console.log('Test 2: Intent Understanding - Packing vs General Guide');
     console.log('---------------------------------------------------');
 
-    const query2 = 'My moss is turning brown';
+    const query2 = 'What should I bring to Japan?';
     console.log(`Query: "${query2}"`);
 
     const ranking2 = await copilotService.rankDocumentsByRelevance(query2, sampleDocs);
     console.log(`Copilot ranking: [${ranking2.join(', ')}]`);
     console.log(`Top result: [${ranking2[0]}] ${sampleDocs[ranking2[0]].title}`);
 
-    // Verify troubleshooting is ranked high
+    // Verify packing is ranked high
     const topDoc2 = sampleDocs[ranking2[0]];
-    if (topDoc2.title.toLowerCase().includes('troubleshoot') || topDoc2.title.toLowerCase().includes('brown')) {
-      console.log('✓ Top result is troubleshooting guide (intent understood)\n');
+    if (topDoc2.title.toLowerCase().includes('pack') || topDoc2.snippet.toLowerCase().includes('pack')) {
+      console.log('✓ Top result is packing guide (intent understood)\n');
     } else {
-      console.log(`⚠ Warning: Expected troubleshooting document, got "${topDoc2.title}"\n`);
+      console.log(`⚠ Warning: Expected packing document, got "${topDoc2.title}"\n`);
     }
 
     // Test 3: Real Knowledge Base Search
@@ -217,7 +217,7 @@ async function runIntegrationTest() {
         console.log('Sample documents from knowledge base:');
         realDocs.forEach((doc, i) => console.log(`  [${i}] ${doc.title}`));
 
-        const query3 = 'How do I care for moss?';
+        const query3 = 'What are the best places to visit in Japan?';
         console.log(`\nQuery: "${query3}"`);
 
         const ranking3 = await copilotService.rankDocumentsByRelevance(query3, realDocs);
