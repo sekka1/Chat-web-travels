@@ -310,6 +310,35 @@ class GoogleSearchScraper {
     // Wait for results to load
     await this.page.waitForTimeout(2000);
 
+    // Check if we hit a CAPTCHA
+    const hasCaptcha = await this.page.evaluate(() => {
+      return !!document.querySelector('#recaptcha') ||
+             !!document.querySelector('.g-recaptcha') ||
+             document.body.textContent?.includes('unusual traffic') ||
+             document.body.textContent?.includes('not a robot');
+    });
+
+    if (hasCaptcha) {
+      console.log('⚠️  WARNING: Google CAPTCHA detected!');
+      console.log('    Google has blocked automated access due to unusual traffic.');
+      console.log('    This is a common anti-bot measure.\n');
+      console.log('💡 Solutions:');
+      console.log('    1. Wait a few minutes and try again');
+      console.log('    2. Use a different IP address or VPN');
+      console.log('    3. Manually visit the URLs from the demo output');
+      console.log('    4. Consider using Google Custom Search API with an API key\n');
+
+      // Save the CAPTCHA page for reference
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const html = await this.page.content();
+      const captchaPath = path.join('/tmp', 'google-captcha.html');
+      fs.writeFileSync(captchaPath, html);
+      console.log(`    CAPTCHA page saved to: ${captchaPath}\n`);
+
+      throw new Error('Google CAPTCHA detected - automated access blocked');
+    }
+
     // Extract search results
     const results = await this.page.evaluate(() => {
       const searchResults: Array<{
