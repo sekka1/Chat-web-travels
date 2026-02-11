@@ -1,16 +1,19 @@
 #!/usr/bin/env npx tsx
 /**
- * GuruWalk Walking Tours Scraper
+ * Generic Tour Listings Scraper
  *
- * This script scrapes walking tour listings from GuruWalk.com, handling
+ * This script scrapes tour listings from various tour websites, handling
  * dynamic content loading via "load more" buttons.
  *
+ * Supports multiple extraction strategies to work with different website structures.
+ *
  * Usage:
- *   npx tsx scripts/scrape-walking-tours.ts <url> [output-dir]
+ *   npx tsx scripts/scrape-tour-listings.ts <url> [output-dir]
  *
  * Examples:
- *   npx tsx scripts/scrape-walking-tours.ts "https://www.guruwalk.com/a/search?beginsAt=2026-02-25&endsAt=2026-02-25&vertical=free-tour&hub=mexico-city"
- *   npx tsx scripts/scrape-walking-tours.ts "https://www.guruwalk.com/a/search?..." ./data/scraped/mexico-city-tours
+ *   npx tsx scripts/scrape-tour-listings.ts "https://www.guruwalk.com/a/search?beginsAt=2026-02-25&endsAt=2026-02-25&vertical=free-tour&hub=mexico-city"
+ *   npx tsx scripts/scrape-tour-listings.ts "https://www.getyourguide.com/..." ./data/scraped/paris-tours
+ *   npx tsx scripts/scrape-tour-listings.ts "https://www.viator.com/..." ./data/scraped/london-tours
  *
  * Output:
  *   - tours.json: Structured tour data
@@ -90,7 +93,7 @@ const CONFIG = {
 // Main Scraper Class
 // ============================================================================
 
-class WalkingTourScraper {
+class TourListingScraper {
   private browser: Browser | null = null;
   private page: Page | null = null;
   private metadata: ScrapingMetadata;
@@ -282,16 +285,60 @@ class WalkingTourScraper {
           tour.title = element.textContent?.trim().slice(0, 100) || 'Untitled Tour';
         }
 
-        // Extract guide name
-        const guideEl = element.querySelector('[class*="guide"], [class*="host"], [class*="organizer"]');
+        // Extract guide name - try multiple strategies
+        // Strategy 1: Look for elements with "guide" in class/id
+        let guideEl = element.querySelector('[class*="guide"], [id*="guide"], [class*="host"], [class*="organizer"]');
         if (guideEl) {
           tour.guide = guideEl.textContent?.trim();
         }
 
-        // Extract description
-        const descEl = element.querySelector('p, [class*="description"], [class*="Description"]');
-        if (descEl) {
-          tour.description = descEl.textContent?.trim();
+        // Strategy 2: Look for text patterns like "Guide: Name" or "By Name"
+        if (!tour.guide) {
+          const textContent = element.textContent || '';
+          const guideMatch = textContent.match(/(?:Guide|Host|By|Organizer):\s*([^\n]+)/i);
+          if (guideMatch) {
+            tour.guide = guideMatch[1].trim();
+          }
+        }
+
+        // Extract description - try multiple strategies
+        // Strategy 1: Look for elements with "description" in class/id
+        let descEl = element.querySelector('[class*="description"], [class*="Description"], [id*="description"]');
+        if (descEl && descEl.textContent?.trim()) {
+          tour.description = descEl.textContent.trim();
+        }
+
+        // Strategy 2: Find standalone <p> tags that are NOT inside metadata containers
+        if (!tour.description) {
+          const paragraphs = Array.from(element.querySelectorAll('p'));
+          for (const p of paragraphs) {
+            const text = p.textContent?.trim() || '';
+            // Skip if it's inside a metadata container or if it looks like metadata
+            const parent = p.parentElement;
+            const isInMeta = parent?.className?.includes('meta') ||
+                           parent?.className?.includes('info') ||
+                           parent?.className?.includes('details');
+            const looksLikeMetadata = /^(Guide|Host|Date|Time|Duration|Location|Language|Rating|Price|By):/i.test(text);
+
+            if (!isInMeta && !looksLikeMetadata && text.length > 20) {
+              tour.description = text;
+              break;
+            }
+          }
+        }
+
+        // Strategy 3: If still no description, look for any text node that's long enough
+        if (!tour.description) {
+          const allText = element.textContent || '';
+          // Try to extract a sentence that's not the title
+          const sentences = allText.split(/[.!?]\s+/).filter(s =>
+            s.trim().length > 30 &&
+            s.trim() !== tour.title &&
+            !/^(Guide|Host|Date|Time|Duration|Location|Language|Rating|Price)/i.test(s)
+          );
+          if (sentences.length > 0) {
+            tour.description = sentences[0].trim();
+          }
         }
 
         // Extract datetime
@@ -513,7 +560,7 @@ class WalkingTourScraper {
     }
 
     lines.push('');
-    lines.push(`*Scraped from GuruWalk on ${new Date(this.metadata.scrapedAt).toLocaleString()}*`);
+    lines.push(`*Scraped on ${new Date(this.metadata.scrapedAt).toLocaleString()}*`);
 
     return lines.join('\n');
   }
@@ -528,21 +575,22 @@ async function main(): Promise<void> {
 
   if (args.length === 0) {
     console.log(`
-Usage: npx tsx scrape-walking-tours.ts <url> [output-dir]
+Usage: npx tsx scrape-tour-listings.ts <url> [output-dir]
 
 Arguments:
-  url         The GuruWalk search URL to scrape
-  output-dir  Output directory (default: ./data/scraped/walking-tours-<timestamp>)
+  url         The tour website URL to scrape
+  output-dir  Output directory (default: ./data/scraped/tour-listings-<timestamp>)
 
 Examples:
-  npx tsx scrape-walking-tours.ts "https://www.guruwalk.com/a/search?beginsAt=2026-02-25&endsAt=2026-02-25&vertical=free-tour&hub=mexico-city"
-  npx tsx scrape-walking-tours.ts "https://www.guruwalk.com/..." ./data/scraped/mexico-city-tours
+  npx tsx scrape-tour-listings.ts "https://www.guruwalk.com/a/search?beginsAt=2026-02-25&endsAt=2026-02-25&vertical=free-tour&hub=mexico-city"
+  npx tsx scrape-tour-listings.ts "https://www.getyourguide.com/..." ./data/scraped/paris-tours
+  npx tsx scrape-tour-listings.ts "https://www.viator.com/..." ./data/scraped/london-tours
 `);
     process.exit(1);
   }
 
   const url = args[0];
-  const outputDir = args[1] || `./data/scraped/walking-tours-${Date.now()}`;
+  const outputDir = args[1] || `./data/scraped/tour-listings-${Date.now()}`;
 
   // Validate URL
   try {
@@ -552,7 +600,7 @@ Examples:
     process.exit(1);
   }
 
-  const scraper = new WalkingTourScraper(url, outputDir);
+  const scraper = new TourListingScraper(url, outputDir);
 
   try {
     await scraper.init();

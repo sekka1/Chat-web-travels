@@ -1,8 +1,16 @@
-# GuruWalk Walking Tours Scraper
+# Generic Tour Listings Scraper
 
 ## Overview
 
-This scraper extracts walking tour listings from GuruWalk.com, with support for handling "load more" buttons to retrieve all available tours.
+This scraper extracts tour listings from various tour websites, with support for handling "load more" buttons to retrieve all available tours. It uses multiple extraction strategies to work with different website structures.
+
+## Supported Websites
+
+While designed to be generic, this scraper has been tested with:
+- GuruWalk.com
+- Any tour website with similar listing structures
+
+The scraper can be extended to support additional tour websites by adding new extraction strategies.
 
 ## Features
 
@@ -10,7 +18,8 @@ This scraper extracts walking tour listings from GuruWalk.com, with support for 
 - ✅ Handles "load more" button clicks to load additional content
 - ✅ Tracks initial count vs. final count after loading
 - ✅ Reports how many additional items were loaded
-- ✅ Extracts comprehensive tour information
+- ✅ **Multiple extraction strategies** for different website structures
+- ✅ Extracts comprehensive tour information (title, description, guide, location, etc.)
 - ✅ Saves data in multiple formats (JSON, Markdown)
 - ✅ Preserves metadata about the scraping process
 
@@ -27,21 +36,32 @@ npx playwright install chromium
 ### Basic Usage
 
 ```bash
-npx tsx .github/skills/web-content-scraper/scripts/scrape-walking-tours.ts "<url>" [output-dir]
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts "<url>" [output-dir]
 ```
 
-### Example with GuruWalk
+### Examples
 
+**GuruWalk:**
 ```bash
-npx tsx .github/skills/web-content-scraper/scripts/scrape-walking-tours.ts \
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
   "https://www.guruwalk.com/a/search?beginsAt=2026-02-25&endsAt=2026-02-25&vertical=free-tour&hub=mexico-city" \
-  ./data/scraped/mexico-city-walking-tours
+  ./data/scraped/mexico-city-tours
 ```
 
-### Example with Default Output Directory
-
+**Other tour websites:**
 ```bash
-npx tsx .github/skills/web-content-scraper/scripts/scrape-walking-tours.ts \
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
+  "https://www.getyourguide.com/..." \
+  ./data/scraped/paris-tours
+
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
+  "https://www.viator.com/..." \
+  ./data/scraped/london-tours
+```
+
+**With Default Output Directory:**
+```bash
+npx tsx .github/skills/web-content-scraper/scripts/scrape-tour-listings.ts \
   "https://www.guruwalk.com/a/search?hub=paris&beginsAt=2026-03-01"
 ```
 
@@ -146,12 +166,12 @@ const CONFIG = {
 
 The scraper attempts to extract the following information for each tour:
 
-| Field | Description | Selectors Used |
-|-------|-------------|----------------|
+| Field | Description | Extraction Strategies |
+|-------|-------------|----------------------|
 | `title` | Tour name | `h2`, `h3`, `h4`, `[class*="title"]` |
-| `guide` | Guide/organizer name | `[class*="guide"]`, `[class*="host"]` |
-| `description` | Tour description | `p`, `[class*="description"]` |
-| `datetime` | Date and time | `[class*="date"]`, `time` |
+| `guide` | Guide/organizer name | Element selectors, text pattern matching |
+| `description` | Tour description | Multiple strategies (see below) |
+| `datetime` | Date and time | `[class*="date"]`, `time` elements |
 | `duration` | Tour length | `[class*="duration"]` |
 | `location` | Meeting point | `[class*="location"]`, `[class*="place"]` |
 | `language` | Tour language(s) | `[class*="language"]`, `[class*="lang"]` |
@@ -159,6 +179,45 @@ The scraper attempts to extract the following information for each tour:
 | `price` | Cost information | `[class*="price"]`, `[class*="cost"]` |
 | `url` | Link to tour page | First `<a>` element in tour card |
 | `imageUrl` | Tour image | First `<img>` element |
+
+### Description Extraction Strategies
+
+The scraper uses multiple strategies to extract tour descriptions, trying each in sequence until successful:
+
+**Strategy 1: Description class/ID**
+- Looks for elements with "description" in their class or ID attributes
+
+**Strategy 2: Standalone paragraphs**
+- Finds `<p>` tags that are NOT inside metadata containers
+- Filters out text that looks like metadata (e.g., "Guide: Name", "Date: Time")
+- Selects paragraphs longer than 20 characters
+
+**Strategy 3: Sentence extraction**
+- Extracts sentences from the tour card text
+- Filters out the title and metadata patterns
+- Selects first sentence longer than 30 characters
+
+This multi-strategy approach ensures the scraper can extract actual tour descriptions (about what the tour is about, places you'll visit, things you'll see) rather than metadata like guide names.
+
+### Guide Extraction Strategies
+
+**Strategy 1: Guide class/ID**
+- Looks for elements with "guide", "host", or "organizer" in class/ID
+
+**Strategy 2: Text pattern matching**
+- Matches patterns like "Guide: Name", "Host: Name", "By Name"
+- Extracts the name portion after the colon
+
+### Extending Extraction Strategies
+
+To add support for new tour websites:
+
+1. **Inspect the HTML structure** of the tour listings
+2. **Add new selectors** to the extraction methods in `extractTours()`
+3. **Test with sample pages** to ensure extraction works correctly
+4. **Document the new patterns** in this README
+
+The scraper is designed to be flexible and easily extended with new extraction patterns.
 
 ## Troubleshooting
 
