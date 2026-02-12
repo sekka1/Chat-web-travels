@@ -59,6 +59,28 @@ See the [EXAMPLES.md](../EXAMPLES.md) file in the parent directory for more deta
 
 See the [SKILL.md](../SKILL.md) file for complete documentation.
 
+## Testing
+
+A test script is available to verify the skill works correctly:
+
+```bash
+# Run the Portland to Seattle test
+npx tsx test-portland-seattle.ts
+```
+
+This test:
+- Researches the route from Portland to Seattle
+- Uses a subset of categories (route-overview, restaurants, points-of-interest)
+- Scrapes 2 results per search (faster than default)
+- Saves output to `tmp/test-portland-seattle-road-trip/`
+- Verifies that the expected output files are created
+- Shows a preview of the summary file
+
+**Note**: This is an integration test that performs actual Google searches and web scraping, so:
+- It requires an internet connection
+- It should be run sparingly to respect rate limits
+- Results may vary based on current Google search results
+
 ## Prerequisites
 
 - Node.js >= 18
