@@ -1,0 +1,77 @@
+{
+  "topic": "Monarch Butterfly Sanctuary Tours Near Mexico City",
+  "researchDate": "2026-02-12T18:39:00.000Z",
+  "researchMethod": "Web search via GitHub Copilot MCP",
+  "searchQuery": "monarch butterfly sanctuary tours near Mexico City",
+  "sources": [
+    {
+      "title": "Monarch butterfly sanctuaries near the CDMX",
+      "url": "https://cdmxsecreta.com/en/monarch-butterflies-near-mexico-city/"
+    },
+    {
+      "title": "Visiting the Monarch Butterfly Sanctuaries Near Mexico City",
+      "url": "https://www.whyweseek.com/how-to-visit-monarch-butterflies-mexico/"
+    },
+    {
+      "title": "Monarch Butterfly Sanctuary Private Tour from Mexico City",
+      "url": "https://www.jtgtravel.com/monarch-butterfly-sanctuary-private-tour-from-mexico-city/"
+    },
+    {
+      "title": "Monarch Butterfly Tours from Mexico City - México Underground",
+      "url": "https://mxunderground.com/monarch-butterfly-tours-from-mexico-city/"
+    },
+    {
+      "title": "CDMX: Tour to Butterfly Sanctuary",
+      "url": "https://veronikasadventure.com/cdmx-tour-to-butterfly-sanctuary/"
+    },
+    {
+      "title": "Trip to Monarchs in Mexico - Butterfly Pavilion",
+      "url": "https://butterflies.org/mexico-monarch-sanctuary/"
+    },
+    {
+      "title": "Butterfly Monarch Tour from Mexico City - Viator",
+      "url": "https://www.viator.com/tours/Mexico-City/Butterfly-Monarch-Tour-from-Mexico-City/d628-40687P4"
+    },
+    {
+      "title": "1-Day Monarch Butterfly Sanctuary Tour from Mexico City - TakeTours",
+      "url": "https://www.taketours.com/mexico-city/1-day-monarch-butterfly-sanctuary-tour-from-mexico-city-645-5061.html"
+    },
+    {
+      "title": "Monarch Butterflies - Mex-ECO Tours",
+      "url": "https://mex-ecotours.com/monarch-butterflies/"
+    }
+  ],
+  "sanctuaries": [
+    "Piedra Herrada (Estado de México)",
+    "Sierra Chincua (Michoacán)",
+    "El Rosario (Michoacán)",
+    "Senguio (Michoacán)"
+  ],
+  "tourOperators": [
+    "México Underground",
+    "Viator",
+    "TakeTours",
+    "JTG Travel",
+    "Butterfly Pavilion",
+    "Mex-ECO Tours",
+    "Veronika's Adventure"
+  ],
+  "tourTypes": [
+    "Day tours",
+    "Private tours",
+    "Small group tours",
+    "Multi-day ecotours"
+  ],
+  "bestVisitingMonths": [
+    "November",
+    "December",
+    "January",
+    "February",
+    "March"
+  ],
+  "peakSeason": "January - February",
+  "outputFiles": [
+    "monarch-butterfly-sanctuary-tours.md",
+    "_metadata.json"
+  ]
+}
