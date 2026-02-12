@@ -300,14 +300,90 @@ Each result directory contains:
 - `images/` - Downloaded images (if any)
 - `images/_attribution.yaml` - Image source attribution
 
+## Road Trip Research Workflow
+
+### Using the Road Trip Research Skill
+
+When a user asks to research things to do while driving from location A to location B, use the **road-trip-research skill** located at `.github/skills/road-trip-research/`.
+
+#### How to Use
+
+```bash
+# Research all categories for a road trip route
+npx tsx .github/skills/road-trip-research/scripts/research-road-trip.ts "San Francisco" "Los Angeles"
+
+# Research specific categories with custom output
+npx tsx .github/skills/road-trip-research/scripts/research-road-trip.ts "Austin" "Houston" 3 ./data/scraped/austin-houston-trip restaurants,local-food,points-of-interest
+```
+
+#### Where to Save Road Trip Research Data
+
+**IMPORTANT**: Road trip research data should be organized in the `data/` directory based on the type of content:
+
+1. **For comprehensive road trip research** → `data/scraped/{origin}-to-{destination}-road-trip/`
+   - Example: `data/scraped/san-francisco-to-los-angeles-road-trip/`
+   - Contains: Multiple categories (route overview, restaurants, points of interest, etc.)
+   - Use when: User requests full road trip research
+
+2. **For well-known routes** → `data/scraped/{route-name}/`
+   - Example: `data/scraped/route-66/`, `data/scraped/pacific-coast-highway/`
+   - Contains: Research for famous or named routes
+   - Use when: Route has a well-known name
+
+3. **For specific category research** → `data/scraped/{origin}-to-{destination}-{category}/`
+   - Example: `data/scraped/portland-seattle-food/`
+   - Contains: Single category research (e.g., just restaurants)
+   - Use when: User requests specific information about one aspect
+
+#### Research Categories
+
+The road-trip-research skill searches for:
+- **Route Overview**: General route information and cities along the way
+- **Restaurants**: Notable restaurants along the route
+- **Local Food**: Regional specialties and local dishes
+- **Points of Interest**: Scenic viewpoints, roadside attractions
+- **Historical Sites**: Historical landmarks and museums
+- **National Parks**: National and state parks near the route
+- **Local Experiences**: Unique local experiences and tours
+
+#### After Research Completion
+
+1. **Review the research summary** (`_road_trip_summary.md`)
+2. **Verify content quality** - Check scraped content for relevance
+3. **Note detour information** - Pay attention to distance/time for detours
+4. **Identify key stops** - Look for frequently mentioned places across sources
+5. **Update knowledge base** - Ensure new content is searchable via KnowledgeService
+
+#### Road Trip Research Output Structure
+
+The road-trip-research skill creates:
+```
+{output-dir}/
+├── route-overview/1-result/, 2-result/...
+├── restaurants/1-result/, 2-result/...
+├── local-food/...
+├── points-of-interest/...
+├── historical-sites/...
+├── national-parks/...
+├── local-experiences/...
+└── _road_trip_summary.md
+```
+
+Each result directory contains:
+- `content.md` - Scraped article content with source attribution
+- `images/` - Downloaded images (if any)
+- `images/_attribution.yaml` - Image source attribution
+
 ## Notes for Future Agents
 
 - **Always check existing content** before adding new files
 - **Use the web-content-scraper skill** for all web scraping tasks (if available)
 - **Use the city-research skill** when researching things to do in cities (if available)
+- **Use the road-trip-research skill** when researching things to do along a driving route (if available)
 - **Maintain attribution** for all external sources
 - **Follow naming conventions** to keep the knowledge base organized
 - **Test searchability** - ensure new content appears in search results
 - **Place city research in appropriate data directories** - See "City Research Workflow" above
+- **Place road trip research in appropriate data directories** - See "Road Trip Research Workflow" above
 
 For questions or issues with the knowledge base structure, refer to the main `README.md` in the repository root.
