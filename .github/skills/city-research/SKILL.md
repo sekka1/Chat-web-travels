@@ -344,6 +344,59 @@ The skill handles errors gracefully:
 5. **Attribution**: Maintain source attribution for all content
 6. **Storage**: Archive research results in appropriate data directories
 
+## Where to Save Research Data
+
+**IMPORTANT**: When researching cities, organize the output in the `data/` directory based on the scope:
+
+### Option 1: Comprehensive City Research
+Save to `data/destinations/{city-name}-research/` when researching all or most categories:
+
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "Tokyo" 3 ./data/destinations/tokyo-research
+```
+
+**Use when:**
+- User requests full research of a new city
+- Researching multiple categories (museums, restaurants, attractions, etc.)
+- Building comprehensive destination guides
+
+### Option 2: Specific Category Research
+Save to `data/scraped/{city-name}-{category}/` when researching specific aspects:
+
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "Paris" 3 ./data/scraped/paris-restaurants restaurants
+```
+
+**Use when:**
+- User requests specific information (e.g., "find restaurants in Paris")
+- Researching one or two categories
+- Supplementing existing destination content
+
+### Option 3: Default Location
+Default saves to `./data/scraped/{city-name}-research/`:
+
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "Mexico City"
+```
+
+**Use when:**
+- Quick research or testing
+- Unsure of final organization
+- Planning to review and reorganize later
+
+### Post-Research Organization
+
+After running the skill:
+
+1. **Review** the `_research_summary.md` file
+2. **Verify** content quality and relevance
+3. **Move or consolidate** content to final locations if needed:
+   - High-quality content → `data/destinations/`
+   - Specific topics → `data/scraped/`
+4. **Ensure searchability** - Content in `data/` is indexed by KnowledgeService
+
+See `data/AGENTS.md` for detailed guidance on data organization.
+
 ## Example: Researching Mexico City
 
 ```bash

@@ -53,11 +53,13 @@ Focuses on food-related categories:
 
 ### Tourist Planning
 ```bash
-npx tsx .github/skills/city-research/scripts/research-city.ts "Rome" 3 ./data/scraped/rome tourist-attractions,museums,historical
+# Save to data/destinations for comprehensive city guide
+npx tsx .github/skills/city-research/scripts/research-city.ts "Rome" 3 ./data/destinations/rome-research tourist-attractions,museums,historical
 ```
 
 ### Food Tour
 ```bash
+# Save to data/scraped for specific topic research
 npx tsx .github/skills/city-research/scripts/research-city.ts "Bangkok" 5 ./data/scraped/bangkok-food restaurants,local-food,street-food,markets
 ```
 
@@ -73,7 +75,43 @@ npx tsx .github/skills/city-research/scripts/research-city.ts "San Francisco" 3 
 
 ### Cultural Deep Dive
 ```bash
-npx tsx .github/skills/city-research/scripts/research-city.ts "Kyoto" 5 ./data/scraped/kyoto-culture museums,historical,markets,local-food
+# Comprehensive research goes to data/destinations
+npx tsx .github/skills/city-research/scripts/research-city.ts "Kyoto" 5 ./data/destinations/kyoto-research museums,historical,markets,local-food
+```
+
+## Where to Save Research Data
+
+### Guidelines for Output Directory Selection
+
+**Use `data/destinations/{city-name}-research/` when:**
+- Researching a new city comprehensively (all or most categories)
+- Building a destination guide for the knowledge base
+- User opens an issue to "research things to do in [city]"
+
+Example:
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "Barcelona" 3 ./data/destinations/barcelona-research
+```
+
+**Use `data/scraped/{city-name}-{topic}/` when:**
+- Researching specific aspects of a city (1-2 categories)
+- Supplementing existing destination content
+- Focused research request (e.g., "find best restaurants in Paris")
+
+Example:
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "Paris" 3 ./data/scraped/paris-restaurants restaurants
+```
+
+**Use default location when:**
+- Testing the skill
+- Unsure of final organization
+- Planning to review and reorganize later
+
+Example:
+```bash
+npx tsx .github/skills/city-research/scripts/research-city.ts "TestCity" 1
+# Creates: ./data/scraped/testcity-research/
 ```
 
 ## Expected Output
