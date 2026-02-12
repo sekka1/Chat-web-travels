@@ -187,12 +187,20 @@ async function runGoogleScraper(
       '../../google-search-scraper/scripts/google-search-and-scrape.ts'
     );
 
-    const args = [scriptPath, query, numResults.toString(), outputDir];
+    // Properly escape the query for shell execution
+    const escapedQuery = query.replace(/"/g, '\\"');
+    const args = [
+      'tsx',
+      scriptPath,
+      `"${escapedQuery}"`,
+      numResults.toString(),
+      `"${outputDir}"`
+    ];
 
     console.log(`\n🔍 Searching: "${query}"`);
     console.log(`   Output: ${outputDir}\n`);
 
-    const child = spawn('npx', ['tsx', ...args], {
+    const child = spawn('npx', args, {
       stdio: 'inherit',
       shell: true,
     });
