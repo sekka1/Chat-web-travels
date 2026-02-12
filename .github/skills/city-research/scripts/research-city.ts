@@ -111,6 +111,10 @@ const SEARCH_TEMPLATES: Record<string, string[]> = {
     'historical sites {city}',
     '{city} historical landmarks',
   ],
+  'cultural-experiences': [
+    'cultural experiences {city}',
+    '{city} traditional festivals events',
+  ],
 };
 
 /**
@@ -126,6 +130,7 @@ const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
   markets: '🛍️ Markets',
   'street-food': '🌯 Street Food',
   historical: '🏰 Historical Sites',
+  'cultural-experiences': '🎨 Cultural Experiences',
 };
 
 // ============================================================================

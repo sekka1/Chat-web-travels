@@ -1,6 +1,6 @@
 ---
 name: city-research
-description: Research things to do in a city by performing targeted Google searches for museums, restaurants, tourist attractions, historical sites, street food, bars, markets, and tech-related places. Use when a user asks to research or find things to do in a city.
+description: Research things to do in a city by performing targeted Google searches for museums, restaurants, tourist attractions, historical sites, street food, bars, markets, cultural experiences, and tech-related places. Use when a user asks to research or find things to do in a city.
 ---
 
 # City Research Skill
@@ -40,6 +40,7 @@ The skill searches for these types of activities:
 | **Markets** | Local markets | "markets in [city]", "[city] local markets" |
 | **Street Food** | Street food spots | "best street food [city]", "[city] street food guide" |
 | **Historical Sites** | Historical landmarks | "historical sites [city]", "[city] historical landmarks" |
+| **Cultural Experiences** | Traditional festivals, events, cultural activities | "cultural experiences [city]", "[city] traditional festivals events" |
 
 ## Authoritative Sources
 
@@ -99,6 +100,7 @@ npx tsx .github/skills/city-research/scripts/research-city.ts <city-name> [num-r
 - `markets`
 - `street-food`
 - `historical`
+- `cultural-experiences`
 
 ## Output Structure
 
@@ -147,6 +149,9 @@ The skill creates a well-organized directory structure:
 ├── tech/
 │   └── 1-tech-museums/
 │       └── content.md
+├── cultural-experiences/
+│   └── 1-traditional-festivals/
+│       └── content.md
 └── _research_summary.md  # Overview of all research performed
 ```
 
@@ -194,8 +199,8 @@ Creates a `_research_summary.md` file containing:
 # City Research: Mexico City
 
 **Research Date:** February 12, 2026
-**Categories Researched:** 9
-**Total Sources Scraped:** 27
+**Categories Researched:** 10
+**Total Sources Scraped:** 30
 
 ---
 
@@ -225,9 +230,9 @@ Creates a `_research_summary.md` file containing:
 
 ## Research Statistics
 
-- **Total queries performed:** 18
-- **Ads filtered out:** 34
-- **Sources scraped:** 27
+- **Total queries performed:** 20
+- **Ads filtered out:** 38
+- **Sources scraped:** 30
 - **Images downloaded:** 142
 - **Total content size:** 2.4 MB
 
