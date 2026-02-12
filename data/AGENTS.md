@@ -156,6 +156,7 @@ images:
 - How-to tutorials
 - Destination reviews
 - Travel blogs
+- **City research data** (from city-research skill)
 
 ## Searchability
 
@@ -235,12 +236,78 @@ Last updated: 2026-02-10
 Tags: budget-travel, southeast-asia, backpacking, accommodation, transportation
 ```
 
+## City Research Workflow
+
+### Using the City Research Skill
+
+When a user asks to research things to do in a city or opens an issue to research a destination, use the **city-research skill** located at `.github/skills/city-research/`.
+
+#### How to Use
+
+```bash
+# Research all categories for a city
+npx tsx .github/skills/city-research/scripts/research-city.ts "City Name"
+
+# Research specific categories and save to data/destinations
+npx tsx .github/skills/city-research/scripts/research-city.ts "Paris" 3 ./data/destinations/paris-research museums,restaurants,historical
+```
+
+#### Where to Save City Research Data
+
+**IMPORTANT**: City research data should be organized in the `data/` directory based on the type of content:
+
+1. **For comprehensive city research** → `data/destinations/{city-name}-research/`
+   - Example: `data/destinations/tokyo-research/`
+   - Contains: Multiple categories (museums, restaurants, attractions, etc.)
+   - Use when: User requests full research of a new city
+
+2. **For specific category research** → `data/scraped/{city-name}-{category}/`
+   - Example: `data/scraped/paris-restaurants/`
+   - Contains: Single category research (e.g., just restaurants)
+   - Use when: User requests specific information about one aspect
+
+3. **For general web scraping** → `data/scraped/{topic-name}/`
+   - Example: `data/scraped/mexico-city-activities/`
+   - Contains: General web content about a topic
+   - Use when: Not using the city-research skill
+
+#### After Research Completion
+
+1. **Review the research summary** (`_research_summary.md`)
+2. **Verify content quality** - Check scraped content for relevance
+3. **Move to final location** - If needed, reorganize content to appropriate subdirectories
+4. **Update knowledge base** - Ensure new content is searchable via KnowledgeService
+
+#### City Research Output Structure
+
+The city-research skill creates:
+```
+{output-dir}/
+├── museums/1-result/, 2-result/...
+├── restaurants/1-result/, 2-result/...
+├── local-food/...
+├── tourist-attractions/...
+├── tech/...
+├── bars/...
+├── markets/...
+├── street-food/...
+├── historical/...
+└── _research_summary.md
+```
+
+Each result directory contains:
+- `content.md` - Scraped article content with source attribution
+- `images/` - Downloaded images (if any)
+- `images/_attribution.yaml` - Image source attribution
+
 ## Notes for Future Agents
 
 - **Always check existing content** before adding new files
 - **Use the web-content-scraper skill** for all web scraping tasks (if available)
+- **Use the city-research skill** when researching things to do in cities (if available)
 - **Maintain attribution** for all external sources
 - **Follow naming conventions** to keep the knowledge base organized
 - **Test searchability** - ensure new content appears in search results
+- **Place city research in appropriate data directories** - See "City Research Workflow" above
 
 For questions or issues with the knowledge base structure, refer to the main `README.md` in the repository root.
