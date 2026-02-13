@@ -274,6 +274,36 @@ This skill builds on:
 
 It can also integrate with the city-research skill to provide deeper coverage of cities along the route.
 
+## Google Maps API Integration
+
+This skill can optionally use the Google Maps API to enhance road trip research with:
+- Accurate route information and driving directions
+- Points of interest along the route
+- Distance and duration calculations
+- Real-time place information
+
+**Using the Google Maps API Key**:
+
+The Google Maps API key is stored as a GitHub secret (`GOOGLE_MAPS_API_KEY`) and is automatically available to AI agents when executing scripts in the repository context.
+
+**For AI Agents**:
+```bash
+# The GOOGLE_MAPS_API_KEY secret is automatically available
+npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+```
+
+**For Local Development**:
+```bash
+# Set the environment variable
+export GOOGLE_MAPS_API_KEY="your-api-key"
+npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+```
+
+**Documentation**:
+- [Using GitHub Secrets with AI Agents](./scripts/use-google-maps-secret.md) - Comprehensive guide on secret access
+- [Google Maps API Documentation](./scripts/README-google-maps.md) - API setup and usage
+- [Google Maps API Test Script](./scripts/test-google-maps-api.ts) - Example implementation
+
 ## Prerequisites
 
 Same as Google Search Scraper:
@@ -285,6 +315,12 @@ npm install
 # Install Playwright browser
 npx playwright install chromium
 ```
+
+**For Google Maps API (optional)**:
+- Google Cloud Platform account
+- Directions API enabled
+- Places API (New) enabled
+- API key stored in GitHub secrets as `GOOGLE_MAPS_API_KEY`
 
 ## Configuration
 

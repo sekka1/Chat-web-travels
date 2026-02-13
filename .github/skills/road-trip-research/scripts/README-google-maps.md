@@ -54,6 +54,16 @@ This implementation uses the following Google Maps Platform REST APIs:
 
 ## Usage
 
+### Verify API Key Access (Recommended First Step)
+
+Before using the Google Maps API, verify that your API key is properly configured:
+
+```bash
+npx tsx .github/skills/road-trip-research/scripts/verify-api-key.ts
+```
+
+This will check if `GOOGLE_MAPS_API_KEY` is accessible and provide troubleshooting guidance if needed.
+
 ### Via GitHub Actions (Recommended)
 
 1. Go to Actions tab in GitHub
