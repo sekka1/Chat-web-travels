@@ -132,10 +132,16 @@ npm run test:integration
 npm run test:integration:semantic
 ```
 
+**Google Maps API integration test** (tests Google Maps API key authentication):
+```bash
+npm run test:integration:google-maps
+```
+
 **Requirements for integration testing:**
-- Active GitHub Copilot subscription
+- Active GitHub Copilot subscription (for Copilot tests)
 - GitHub CLI authenticated (`gh auth login`)
 - GitHub Copilot configured (`gh copilot login`)
+- Google Maps API key set as environment variable (for Google Maps test)
 
 **Additional test commands:**
 ```bash

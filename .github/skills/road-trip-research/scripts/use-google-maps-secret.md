@@ -191,6 +191,23 @@ npx tsx .github/skills/road-trip-research/scripts/verify-api-key.ts
 #    Length: 38 characters
 ```
 
+### Integration Testing
+
+**Run the integration test** to verify the API key works with Google Maps API:
+
+```bash
+# Run the Google Maps API integration test
+npm run test:integration:google-maps
+
+# This will:
+# 1. Check that GOOGLE_MAPS_API_KEY is set
+# 2. Make a minimal Geocoding API request (negligible cost)
+# 3. Verify authentication is successful
+# 4. Confirm the API key has proper permissions
+```
+
+The integration test is automatically run in CI/CD when changes are pushed. It validates the secret is accessible and can authenticate with Google Maps API.
+
 ### Testing the Google Maps API
 
 ```bash
