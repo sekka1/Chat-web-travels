@@ -129,6 +129,20 @@ await bash({
 
 ## Troubleshooting
 
+### Verify Secret Access
+
+Use the verification script to check if the API key is accessible:
+
+```bash
+npx tsx .github/skills/road-trip-research/scripts/verify-api-key.ts
+```
+
+This will:
+- Check if `GOOGLE_MAPS_API_KEY` is set
+- Display a masked version of the key
+- Provide troubleshooting guidance if the key is missing
+- Warn about common issues (placeholder values, unusual length, etc.)
+
 ### Secret Not Available to AI Agent
 
 **Problem**: The script returns an error that `GOOGLE_MAPS_API_KEY` is not set.
@@ -150,6 +164,18 @@ await bash({
 4. Verify you haven't exceeded API quota limits
 
 ## Examples
+
+### Verifying Secret Access
+
+```bash
+# Check if the API key is accessible
+npx tsx .github/skills/road-trip-research/scripts/verify-api-key.ts
+
+# Expected output when successful:
+# ✅ GOOGLE_MAPS_API_KEY is set and accessible
+#    Masked value: AIza********************lmno
+#    Length: 38 characters
+```
 
 ### Testing the Google Maps API
 
