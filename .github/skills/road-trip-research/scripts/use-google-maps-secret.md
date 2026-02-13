@@ -45,14 +45,28 @@ For local development and testing outside of GitHub's environment:
 
 1. Create a `.env` file in the project root (this file is gitignored):
    ```bash
-   GOOGLE_MAPS_API_KEY=your-actual-api-key-here
+   # Use the template
+   cp .env.example .env
+   # Edit .env to add your actual API key
    ```
 
 2. Load it before running scripts:
    ```bash
-   export $(cat .env | xargs)
+   # Load environment variables safely
+   # Note: set -a exports all variables from the file, so ensure .env only contains intended variables
+   set -a
+   source .env
+   set +a
    npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
    ```
+
+   Or use a single-line inline approach:
+   ```bash
+   # Inline method (for simple cases)
+   (set -a; source .env; set +a; npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA")
+   ```
+
+**Security Best Practice**: Use `.env.example` as a template and only add necessary environment variables to `.env` to prevent unintentional variable exposure.
 
 ### Option 3: Direct Environment Variable
 

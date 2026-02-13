@@ -240,9 +240,21 @@ If running scripts locally outside of the AI agent context:
 
 2. **Option 2 - Create .env file** (gitignored):
    ```bash
-   echo "GOOGLE_MAPS_API_KEY=your-api-key" > .env
-   export $(cat .env | xargs)
+   # Create .env file from template
+   cp .env.example .env
+   # Edit .env to add your actual API key
+   
+   # Load environment variables safely
+   # Note: set -a exports all variables from the file, so ensure .env only contains intended variables
+   set -a
+   source .env
+   set +a
+   
+   # Run the script
+   npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
    ```
+   
+   **Security Note**: Use `.env.example` as a template and only add necessary environment variables to `.env` to avoid unintentional exposure.
 
 ### Available Secrets
 
