@@ -198,6 +198,71 @@ chat-web-travels/
 - Include proper markdown formatting
 - Add tags for searchability
 
+## Using GitHub Secrets with AI Agents
+
+AI agents can access GitHub secrets (like API keys) when executing scripts in the repository context. This is particularly useful for skills that require external API access.
+
+### Accessing Secrets
+
+**Environment Variables**: Secrets are exposed as environment variables when:
+- You're authenticated with GitHub CLI (`gh auth login`)
+- You have access to the repository
+- The secret exists in repository settings
+
+**Example**: The `GOOGLE_MAPS_API_KEY` secret is automatically available to scripts:
+
+```typescript
+// Scripts can access secrets via process.env
+const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+if (!apiKey) {
+  throw new Error('GOOGLE_MAPS_API_KEY environment variable is required');
+}
+```
+
+### Using Secrets in Skills
+
+When an AI agent executes a skill script that requires a secret:
+
+```bash
+# The environment variable is automatically available
+npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+```
+
+### For Local Development
+
+If running scripts locally outside of the AI agent context:
+
+1. **Option 1 - Export environment variable**:
+   ```bash
+   export GOOGLE_MAPS_API_KEY="your-api-key"
+   npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+   ```
+
+2. **Option 2 - Create .env file** (gitignored):
+   ```bash
+   echo "GOOGLE_MAPS_API_KEY=your-api-key" > .env
+   export $(cat .env | xargs)
+   ```
+
+### Available Secrets
+
+- `GOOGLE_MAPS_API_KEY`: For Google Maps API (Directions API, Places API)
+
+### Setting Up New Secrets
+
+To add a new secret for AI agents to use:
+
+1. Go to repository Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Enter name (e.g., `API_KEY_NAME`) and value
+4. The secret will be available to AI agents via `process.env.API_KEY_NAME`
+
+**Security Note**: Never commit secrets to code. Always use environment variables and verify secrets are listed in `.gitignore`.
+
+For detailed information about using the Google Maps API key with AI agents, see:
+- [Using GitHub Secrets with AI Agents](.github/skills/road-trip-research/scripts/use-google-maps-secret.md)
+- [Google Maps API Documentation](.github/skills/road-trip-research/scripts/README-google-maps.md)
+
 ## Additional Notes
 
 - This project uses ES modules (`"type": "module"` in package.json)

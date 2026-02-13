@@ -338,14 +338,46 @@ MIT
 
 ## Environment Variables
 
+The application supports the following environment variables:
+
 - `PORT`: Server port (default: 3000)
-- GitHub Copilot authentication is handled via the GitHub CLI (`gh copilot login`)
+- `GOOGLE_MAPS_API_KEY`: Google Maps API key for route research features (optional)
+
+### Setting Up Environment Variables
+
+**For Local Development**:
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your actual values:
+   ```bash
+   GOOGLE_MAPS_API_KEY=your-actual-api-key-here
+   ```
+
+3. The `.env` file is gitignored and will not be committed
+
+**For GitHub Actions**:
+
+Environment variables are automatically provided from GitHub secrets. No additional setup needed.
+
+**For AI Agents**:
+
+When authenticated with GitHub CLI, AI agents automatically have access to repository secrets as environment variables. See [AGENTS.md](./AGENTS.md) for details.
+
+### GitHub Copilot Authentication
+
+GitHub Copilot authentication is handled via the GitHub CLI (`gh copilot login`). No environment variable needed.
 
 ## Security
 
 This application implements security best practices:
 
 - Input validation on API endpoints
-- No hardcoded secrets
+- No hardcoded secrets (uses environment variables)
 - Content Security Policy headers ready for implementation
 - Safe HTML rendering (no XSS vulnerabilities)
+- Secrets stored in GitHub repository secrets for CI/CD
+- `.env` files gitignored to prevent accidental commits
