@@ -18,6 +18,33 @@
  *     * Directions API
  *     * Places API (New)
  *   - npm install (to get dependencies)
+ *
+ * API Documentation References:
+ *   This implementation uses the following Google Maps Platform APIs:
+ *
+ *   1. Directions API (REST)
+ *      - Overview: https://developers.google.com/maps/documentation/directions/overview
+ *      - Get Directions: https://developers.google.com/maps/documentation/directions/get-directions
+ *      - Reference: https://developers.google.com/maps/documentation/directions/reference/rest
+ *      - Used in: getDirections() function (line ~112)
+ *      - Endpoint: https://maps.googleapis.com/maps/api/directions/json
+ *
+ *   2. Places API - Nearby Search (REST)
+ *      - Overview: https://developers.google.com/maps/documentation/places/web-service/overview
+ *      - Nearby Search: https://developers.google.com/maps/documentation/places/web-service/search-nearby
+ *      - Place Types: https://developers.google.com/maps/documentation/places/web-service/supported_types
+ *      - Reference: https://developers.google.com/maps/documentation/places/web-service/search
+ *      - Used in: searchNearbyPlaces() function (line ~140)
+ *      - Endpoint: https://maps.googleapis.com/maps/api/place/nearbysearch/json
+ *
+ *   General Resources:
+ *   - Google Maps Platform Documentation: https://developers.google.com/maps/documentation
+ *   - JavaScript API (for reference): https://developers.google.com/maps/documentation/javascript
+ *   - API Key Best Practices: https://developers.google.com/maps/api-security-best-practices
+ *   - Pricing Calculator: https://mapsplatform.google.com/pricing/
+ *
+ *   Note: This implementation uses the REST APIs (not the JavaScript client library)
+ *         for server-side integration without browser dependencies.
  */
 
 import https from 'https';

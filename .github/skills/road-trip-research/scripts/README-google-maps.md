@@ -25,8 +25,32 @@ This script uses Google Maps APIs to research things to do along a driving route
 
 ### API Documentation
 
-- [Directions API](https://developers.google.com/maps/documentation/directions)
-- [Places API](https://developers.google.com/maps/documentation/places/web-service)
+This implementation uses the following Google Maps Platform REST APIs:
+
+#### 1. Directions API
+- **Overview**: https://developers.google.com/maps/documentation/directions/overview
+- **Get Directions Guide**: https://developers.google.com/maps/documentation/directions/get-directions
+- **REST API Reference**: https://developers.google.com/maps/documentation/directions/reference/rest
+- **Usage**: Gets driving route from origin to destination with distance, duration, and step-by-step directions
+
+#### 2. Places API - Nearby Search
+- **Overview**: https://developers.google.com/maps/documentation/places/web-service/overview
+- **Nearby Search Guide**: https://developers.google.com/maps/documentation/places/web-service/search-nearby
+- **Supported Place Types**: https://developers.google.com/maps/documentation/places/web-service/supported_types
+- **API Reference**: https://developers.google.com/maps/documentation/places/web-service/search
+- **Usage**: Finds points of interest near specific coordinates along the route
+
+#### General Documentation
+- **Google Maps Platform Home**: https://developers.google.com/maps/documentation
+- **JavaScript API** (reference only, not used): https://developers.google.com/maps/documentation/javascript
+- **API Key Best Practices**: https://developers.google.com/maps/api-security-best-practices
+- **Pricing Information**: https://mapsplatform.google.com/pricing/
+
+#### Migration Notes
+- This implementation uses the **REST APIs** for server-side integration
+- The JavaScript API mentioned in some Google docs is for browser-based applications
+- If migrating to newer APIs (e.g., Places API v2), refer to:
+  - https://developers.google.com/maps/documentation/places/web-service/migrate-places-v1
 
 ## Usage
 
@@ -114,3 +138,84 @@ For a typical Portland → Seattle test with 3 categories:
 - **Total cost per test**: ~$0.49
 
 [Google Maps Platform Pricing](https://mapsplatform.google.com/pricing/)
+
+## Technical Implementation Details
+
+### API Endpoints Used
+
+This script makes HTTP requests to the following Google Maps Platform endpoints:
+
+1. **Directions API**
+   - Endpoint: `https://maps.googleapis.com/maps/api/directions/json`
+   - Parameters:
+     - `origin`: Starting location (string)
+     - `destination`: Ending location (string)
+     - `mode`: Travel mode (set to "driving")
+     - `key`: API key
+   - Response: JSON with route information including steps, distance, duration
+   - Implementation: See `getDirections()` function (line ~130)
+
+2. **Places API - Nearby Search**
+   - Endpoint: `https://maps.googleapis.com/maps/api/place/nearbysearch/json`
+   - Parameters:
+     - `location`: Coordinates as "lat,lng" (string)
+     - `radius`: Search radius in meters (number)
+     - `type`: Place type (e.g., "restaurant", "tourist_attraction", "park")
+     - `key`: API key
+   - Response: JSON with array of places matching criteria
+   - Implementation: See `searchNearbyPlaces()` function (line ~165)
+
+### Response Data Structures
+
+#### Directions API Response
+```typescript
+{
+  routes: [{
+    legs: [{
+      distance: { text: "174 mi", value: 280000 },
+      duration: { text: "3 hours 2 mins", value: 10920 },
+      start_address: "Portland, OR, USA",
+      end_address: "Seattle, WA, USA",
+      steps: [/* array of route steps */]
+    }],
+    summary: "I-5 N"
+  }],
+  status: "OK"
+}
+```
+
+#### Places API Response
+```typescript
+{
+  results: [{
+    name: "Place Name",
+    formatted_address: "123 Main St, City, State",
+    rating: 4.5,
+    types: ["restaurant", "food"],
+    geometry: {
+      location: { lat: 45.5155, lng: -122.6789 }
+    },
+    vicinity: "123 Main St"
+  }],
+  status: "OK"
+}
+```
+
+### Algorithm Overview
+
+1. **Route Retrieval**: Call Directions API to get complete route from origin to destination
+2. **Waypoint Generation**: Sample the route every 50km using the Haversine formula for distance calculations
+3. **POI Search**: For each category (restaurants, attractions, parks):
+   - Search near every other waypoint (to reduce API calls)
+   - Use category-specific search radius (10km-20km)
+   - Aggregate results across all waypoints
+4. **Deduplication**: Remove duplicate places based on name
+5. **Output**: Save JSON with route info and top 20 places per category
+
+### Future Enhancement Options
+
+- **Additional Place Types**: Add more categories from the [supported types list](https://developers.google.com/maps/documentation/places/web-service/supported_types) (gas_station, lodging, museum, etc.)
+- **Text Search**: Use [Text Search API](https://developers.google.com/maps/documentation/places/web-service/search-text) for specific queries
+- **Place Details**: Call [Place Details API](https://developers.google.com/maps/documentation/places/web-service/details) for more information (photos, reviews, hours)
+- **Distance Matrix**: Use [Distance Matrix API](https://developers.google.com/maps/documentation/distance-matrix/overview) to calculate detour distances
+- **Geocoding**: Add [Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview) for address validation
