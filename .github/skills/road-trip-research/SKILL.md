@@ -10,13 +10,15 @@ Research comprehensive information about things to do, see, and eat along a driv
 ## Overview
 
 This skill automates the process of researching a road trip by:
-1. Searching for route information from point A to point B
-2. Identifying cities and towns along the route
-3. Performing targeted Google searches for activities, restaurants, and attractions along the route
-4. Finding points of interest, historical sites, and national parks near the route
-5. Identifying worthwhile detours with distance information
-6. Organizing the content by location and category
-7. Saving everything in a structured format for later use
+1. **Using Google Maps Directions API** to get the exact route from origin to destination
+2. **Generating waypoints** along the route (approximately every 50km)
+3. **Finding points of interest (POIs)** along the route using Google Maps Places API
+4. **Creating targeted searches** for each POI found
+5. **Scraping detailed information** about each location using Google Search
+6. **Organizing the content** by location and category
+7. **Saving everything** in a structured format for later use
+
+**Key Difference:** This skill now anchors on Google Maps API to get real route data and POIs first, then uses Google Search to get detailed information about those specific places.
 
 ## When to Use
 
@@ -31,16 +33,15 @@ Use this skill when a user:
 
 The skill searches for these types of activities along the route:
 
-| Category | Description | Example Searches |
-|----------|-------------|------------------|
-| **Route Overview** | General route information and cities along the way | "[origin] to [destination] route", "cities between [origin] and [destination]" |
-| **Restaurants** | Notable restaurants along the route | "best restaurants along [origin] to [destination]", "famous restaurants [city] [highway]" |
-| **Local Food** | Regional specialties and local dishes | "famous food [region]", "must-try food along [route]" |
-| **Points of Interest** | Scenic viewpoints, roadside attractions | "roadside attractions [origin] to [destination]", "scenic stops along [route]" |
-| **Historical Sites** | Historical landmarks and museums | "historical sites along [route]", "museums between [origin] and [destination]" |
-| **National Parks** | National and state parks near the route | "national parks near [route]", "state parks along [highway]" |
-| **Local Experiences** | Unique local experiences and tours | "things to do in [town] along [route]", "local experiences [region]" |
-| **Cities Along Route** | Major cities worth stopping in | Researches individual cities using targeted searches |
+| Category | Description | Google Maps Place Types | Search Radius |
+|----------|-------------|------------------------|---------------|
+| **Route Overview** | General route information and overview | N/A (uses Google Search only) | N/A |
+| **Restaurants** | Notable restaurants, cafes, bakeries | restaurant, cafe, bakery | 10km |
+| **Local Food** | Regional specialties and local dishes | restaurant, meal_takeaway, food | 10km |
+| **Points of Interest** | Scenic viewpoints, tourist attractions | tourist_attraction, point_of_interest | 15km |
+| **Historical Sites** | Historical landmarks, museums, churches | museum, church, synagogue, hindu_temple | 20km |
+| **National Parks** | National and state parks, campgrounds | park, natural_feature, campground | 25km |
+| **Local Experiences** | Unique experiences, amusement parks, zoos | tourist_attraction, amusement_park, zoo, aquarium | 15km |
 
 ## Usage
 
@@ -85,7 +86,10 @@ npx tsx .github/skills/road-trip-research/scripts/research-road-trip.ts <origin>
 - `historical-sites`
 - `national-parks`
 - `local-experiences`
-- `cities-along-route`
+
+**Prerequisites:**
+- `GOOGLE_MAPS_API_KEY` environment variable must be set
+- Google Cloud Platform account with Directions API and Places API enabled
 
 ## Output Structure
 
@@ -133,49 +137,56 @@ The skill creates a well-organized directory structure:
 
 ## How It Works
 
-### Step 1: Route Information
+### Step 1: Get Route from Google Maps
 
-First, the skill searches for general route information:
-- Main route/highway used
-- Major cities along the way
-- Approximate driving time and distance
-- Route characteristics (scenic, historic, etc.)
+The skill first calls the Google Maps Directions API to get:
+- Exact driving route from origin to destination
+- Total distance and estimated duration
+- Step-by-step navigation instructions
+- Route summary (main highway/road used)
 
-### Step 2: Query Generation
+### Step 2: Generate Waypoints
 
-For each research category, the skill generates multiple search queries:
+Waypoints are generated approximately every 50km along the route to:
+- Sample the entire route evenly
+- Ensure POI coverage along the entire journey
+- Avoid missing interesting locations between cities
 
-**Example for "San Francisco to Los Angeles":**
-- Route Overview: `"San Francisco to Los Angeles route guide"`, `"cities along Highway 101 California"`
-- Restaurants: `"best restaurants Highway 101 California"`, `"famous restaurants San Francisco to LA"`
-- Points of Interest: `"roadside attractions California coast"`, `"scenic stops San Francisco to Los Angeles"`
+### Step 3: Find POIs Using Google Maps
 
-### Step 3: Google Search and Scrape
+For each category, the skill:
+1. Searches near each waypoint using Google Maps Places API
+2. Uses category-specific place types (e.g., "restaurant", "tourist_attraction")
+3. Searches within a radius appropriate for the category (10-25km)
+4. Deduplicates results by name
+5. Filters for well-rated places (rating ≥ 3.5)
 
-For each query:
+### Step 4: Create Targeted Searches
+
+For each POI found:
+- Generates a specific search query: `[POI Name] [Location] details reviews`
+- Limits to top-rated POIs to avoid overwhelming searches
+- Distributes POIs across categories based on availability
+
+### Step 5: Scrape Detailed Information
+
+For each targeted search:
 1. Performs Google search
 2. Filters out advertisements
 3. Scrapes top N organic results
 4. Extracts content and images
 5. Saves to category-specific directory
 
-### Step 4: City Research Integration
-
-If the skill identifies major cities along the route, it can optionally:
-1. Run targeted searches for those cities
-2. Use the city-research skill patterns for comprehensive city coverage
-3. Organize city-specific results in dedicated subdirectories
-
-### Step 5: Summary Generation
+### Step 6: Generate Summary
 
 Creates a `_road_trip_summary.md` file containing:
 - Origin and destination
-- Route overview (if found)
+- Route information (distance, duration, main roads)
 - Research date
+- Number of POIs found per category
 - List of all categories researched
 - Number of results per category
 - Quick links to all scraped content
-- Detour information (when available)
 
 ## Example Output
 
@@ -185,84 +196,67 @@ Creates a `_road_trip_summary.md` file containing:
 # Road Trip Research: San Francisco to Los Angeles
 
 **Route:** San Francisco, CA → Los Angeles, CA
-**Research Date:** February 12, 2026
+**Research Date:** February 13, 2026
+**Distance:** 382 miles
+**Duration:** 6 hours 15 mins
+**Route:** US-101 S
 **Categories Researched:** 7
-**Total Sources Scraped:** 24
-
----
-
-## Route Overview
-
-**Main Route:** Highway 101 / Pacific Coast Highway (PCH)
-**Distance:** ~380 miles
-**Driving Time:** ~6-7 hours (without stops)
-
-### Major Cities Along the Way
-- San Jose, CA
-- Monterey, CA
-- San Luis Obispo, CA
-- Santa Barbara, CA
+**Total POIs Found:** 147
+**Total Sources Scraped:** 28
 
 ---
 
 ## Categories
 
-### 🍽️ Restaurants (4 sources)
+### 🗺️ Route Overview (3 sources)
 
-1. [Best Restaurants Along Highway 101](./restaurants/1-best-restaurants-along-route/content.md)
-2. [Famous Diners on PCH](./restaurants/2-famous-diners/content.md)
-3. [Monterey Dining Guide](./restaurants/3-monterey-dining/content.md)
-4. [Santa Barbara Restaurants](./restaurants/4-santa-barbara-restaurants/content.md)
+1. [San Francisco to Los Angeles Route](./route-overview/1-route-guide/content.md)
+2. [Cities Between SF and LA](./route-overview/2-cities-along-route/content.md)
+3. [Highway 101 Road Trip Guide](./route-overview/3-road-trip-guide/content.md)
 
-### 🌮 Local Food (3 sources)
+### 🍽️ Restaurants (6 sources) (23 POIs found)
 
-1. [California Coastal Cuisine](./local-food/1-regional-specialties/content.md)
-2. [Must-Try Dishes Along the Coast](./local-food/2-must-try-dishes/content.md)
-3. [Seafood Spots on PCH](./local-food/3-seafood-spots/content.md)
+1. [The Mission Grill San Jose](./restaurants/1-the-mission-grill/content.md) (3 images)
+2. [Nepenthe Big Sur](./restaurants/2-nepenthe-big-sur/content.md) (5 images)
+3. [Monterey Fish House](./restaurants/3-monterey-fish-house/content.md)
+4. [San Luis Obispo Brewing](./restaurants/4-slo-brewing/content.md) (2 images)
+5. [Cold Spring Tavern Santa Barbara](./restaurants/5-cold-spring-tavern/content.md) (4 images)
+6. [Neptune's Net Malibu](./restaurants/6-neptunes-net/content.md) (3 images)
 
-### 📍 Points of Interest (4 sources)
+### 🌮 Local Food (4 sources) (18 POIs found)
 
-1. [Roadside Attractions PCH](./points-of-interest/1-roadside-attractions/content.md)
-   *Includes: Big Sur viewpoints, Bixby Bridge, Elephant Seal Rookery*
-2. [Scenic Stops Along Highway 101](./points-of-interest/2-scenic-stops/content.md)
-3. [California Coast Landmarks](./points-of-interest/3-coast-landmarks/content.md)
-4. [Photo Opportunities on the Drive](./points-of-interest/4-photo-spots/content.md)
+1. [California Coastal Cuisine Guide](./local-food/1-coastal-cuisine/content.md)
+2. [Monterey Clam Chowder Trail](./local-food/2-clam-chowder/content.md)
+3. [Santa Barbara Wine Country Food](./local-food/3-wine-country-food/content.md)
+4. [Malibu Seafood Fresh](./local-food/4-malibu-seafood/content.md)
 
-### 🏛️ Historical Sites (3 sources)
+### 📍 Points of Interest (7 sources) (42 POIs found)
 
-1. [Missions Along El Camino Real](./historical-sites/1-california-missions/content.md)
-   *Notable detours: 5-15 minutes off route*
-2. [Hearst Castle](./historical-sites/2-hearst-castle/content.md)
-   *Detour: 10 miles / 20 minutes from Highway 1*
-3. [Historic Sites San Luis Obispo](./historical-sites/3-slo-historic/content.md)
-
-### 🏞️ National Parks (2 sources)
-
-1. [Big Sur State Parks](./national-parks/1-big-sur-parks/content.md)
-   *Directly on route*
-2. [Pinnacles National Park](./national-parks/2-pinnacles/content.md)
-   *Detour: 35 miles / 1 hour from Soledad*
+1. [Bixby Bridge Big Sur](./points-of-interest/1-bixby-bridge/content.md) (8 images)
+2. [Monterey Bay Aquarium](./points-of-interest/2-monterey-aquarium/content.md) (6 images)
+3. [Elephant Seal Rookery](./points-of-interest/3-elephant-seals/content.md) (5 images)
+4. [McWay Falls Big Sur](./points-of-interest/4-mcway-falls/content.md) (7 images)
+5. [Santa Barbara Mission](./points-of-interest/5-sb-mission/content.md) (4 images)
+6. [Getty Villa Malibu](./points-of-interest/6-getty-villa/content.md) (6 images)
+7. [El Capitan State Beach](./points-of-interest/7-el-capitan/content.md) (3 images)
 
 [... continues for all categories ...]
 
 ---
 
-## Recommended Stops
+## Research Statistics
 
-Based on the research, notable stops include:
-
-1. **Monterey** - Aquarium, Cannery Row, seafood (on route)
-2. **Big Sur** - Scenic viewpoints, state parks (on route)
-3. **Hearst Castle** - Historic mansion tour (20 min detour)
-4. **San Luis Obispo** - Mission, downtown, restaurants (on route)
-5. **Santa Barbara** - Mission, beaches, wine country nearby (on route)
+- **Total POIs found:** 147
+- **Total queries performed:** 28
+- **Sources scraped:** 28
+- **Images downloaded:** 94
 
 ---
 
 **Research powered by:**
-- 🔍 Google Search (organic results only)
-- 📰 Travel blogs and route guides
-- 🗺️ Regional tourism sites
+- 🗺️ Google Maps API (route and POI data)
+- 🔍 Google Search (detailed information)
+- 📰 Travel blogs and guides
 ```
 
 ## Integration with Other Skills
@@ -276,27 +270,33 @@ It can also integrate with the city-research skill to provide deeper coverage of
 
 ## Google Maps API Integration
 
-This skill can optionally use the Google Maps API to enhance road trip research with:
-- Accurate route information and driving directions
-- Points of interest along the route
-- Distance and duration calculations
-- Real-time place information
+This skill **requires** the Google Maps API to function. It uses two key APIs:
 
-**Using the Google Maps API Key**:
+### Directions API
+- Gets exact driving route from origin to destination
+- Provides distance, duration, and step-by-step navigation
+- Returns route summary (main highways/roads used)
+
+### Places API (Nearby Search)
+- Finds points of interest along the route
+- Searches for specific place types (restaurants, attractions, parks, etc.)
+- Returns place details including name, rating, address, and location
+
+**Setting up the API Key:**
 
 The Google Maps API key is stored as a GitHub secret (`GOOGLE_MAPS_API_KEY`) and is automatically available to AI agents when executing scripts in the repository context.
 
 **For AI Agents**:
 ```bash
 # The GOOGLE_MAPS_API_KEY secret is automatically available
-npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+npx tsx .github/skills/road-trip-research/scripts/research-road-trip.ts "Portland, OR" "Seattle, WA"
 ```
 
 **For Local Development**:
 ```bash
 # Set the environment variable
 export GOOGLE_MAPS_API_KEY="your-api-key"
-npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portland, OR" "Seattle, WA"
+npx tsx .github/skills/road-trip-research/scripts/research-road-trip.ts "Portland, OR" "Seattle, WA"
 ```
 
 **Documentation**:
@@ -306,7 +306,7 @@ npx tsx .github/skills/road-trip-research/scripts/test-google-maps-api.ts "Portl
 
 ## Prerequisites
 
-Same as Google Search Scraper:
+**Required:**
 
 ```bash
 # Install dependencies (already in package.json)
@@ -316,31 +316,38 @@ npm install
 npx playwright install chromium
 ```
 
-**For Google Maps API (optional)**:
+**Google Maps API (required)**:
 - Google Cloud Platform account
 - Directions API enabled
-- Places API (New) enabled
+- Places API enabled
 - API key stored in GitHub secrets as `GOOGLE_MAPS_API_KEY`
+
+**Environment variable:**
+```bash
+export GOOGLE_MAPS_API_KEY="your-api-key"
+```
 
 ## Configuration
 
-The script includes configurable search templates for each category:
+The script includes configurable mappings for each category to Google Maps place types:
 
 ```typescript
-const SEARCH_TEMPLATES = {
-  'route-overview': [
-    '{origin} to {destination} route',
-    'cities between {origin} and {destination}',
-    '{origin} to {destination} road trip guide'
-  ],
-  restaurants: [
-    'best restaurants along {origin} to {destination}',
-    'famous restaurants {route}',
-    'must-stop restaurants {origin} to {destination}'
-  ],
-  // ... more categories
+const CATEGORY_TO_PLACE_TYPES = {
+  'restaurants': { types: ['restaurant', 'cafe', 'bakery'], radius: 10000 },
+  'local-food': { types: ['restaurant', 'meal_takeaway', 'food'], radius: 10000 },
+  'points-of-interest': { types: ['tourist_attraction', 'point_of_interest'], radius: 15000 },
+  'historical-sites': { types: ['museum', 'church', 'synagogue', 'hindu_temple'], radius: 20000 },
+  'national-parks': { types: ['park', 'natural_feature', 'campground'], radius: 25000 },
+  'local-experiences': { types: ['tourist_attraction', 'amusement_park', 'zoo', 'aquarium'], radius: 15000 },
 };
 ```
+
+You can customize:
+- Place types to search for each category
+- Search radius (in meters) for each category
+- Number of waypoints generated (default: every 50km)
+- Minimum rating filter (default: 3.5)
+- Maximum POIs per category to research in detail
 
 ## Best Practices
 
@@ -419,42 +426,52 @@ Research historical sites, museums, and landmarks along historic routes.
 
 ## Limitations
 
-- **Route accuracy**: Cannot calculate exact driving routes without maps API
-- **Detour distances**: Relies on web content for detour information
-- **Real-time info**: Cannot check current business hours, road conditions, or closures
-- **Coverage**: May miss very small towns or local spots without online presence
-- **International routes**: Best suited for well-documented routes (US highways, European routes, etc.)
+- **API costs**: Google Maps API calls incur costs (Directions API + multiple Places API calls)
+- **POI coverage**: May miss very small local spots without Google Maps presence
+- **Search accuracy**: Relies on Google Search results for detailed information
+- **Real-time info**: Cannot check current business hours, road conditions, or temporary closures
+- **API rate limits**: Includes delays between API calls to respect rate limits
+- **International routes**: Best suited for well-documented routes with good Google Maps coverage
 
 ## Future Enhancements
 
 Potential improvements:
-- Integration with mapping APIs (Google Maps, OpenStreetMap) for accurate routes
-- Automatic distance calculation for detours
-- Filtering by maximum detour distance
-- Weather information along the route
-- Gas station and rest stop locations
-- Accommodation suggestions along the way
-- Route alternatives (scenic vs. fast)
+- Cache Google Maps API results to reduce costs
+- Support for multi-day trips with overnight stops
+- Integration with weather APIs for seasonal recommendations
+- Support for different travel modes (walking, biking, scenic routes)
+- Automatic categorization of POIs by themes
+- Integration with accommodation booking APIs
+- Cost estimation for the entire trip
 
 ## Troubleshooting
 
-### No results for route
+### Missing GOOGLE_MAPS_API_KEY
 
-**Cause**: Route may not be well-documented online or locations not specific enough
-
-**Solution**:
-- Use more specific location names (include state/country)
-- Try major cities near origin/destination
-- Search for the main highway name if known
-
-### Too generic results
-
-**Cause**: Search queries may be too broad
+**Error**: `GOOGLE_MAPS_API_KEY environment variable is required`
 
 **Solution**:
-- Include highway or route name if known
-- Break long routes into segments
-- Use more specific category searches
+- Set the environment variable: `export GOOGLE_MAPS_API_KEY="your-api-key"`
+- For AI agents, ensure the secret is configured in GitHub repository settings
+- See [use-google-maps-secret.md](./scripts/use-google-maps-secret.md) for detailed setup
+
+### No POIs found for route
+
+**Cause**: Route may be in remote area or waypoints too far apart
+
+**Solution**:
+- Check if locations are correctly spelled
+- Reduce waypoint interval in configuration
+- Try a different route with more populated areas
+
+### API rate limit errors
+
+**Cause**: Too many API calls in short time
+
+**Solution**:
+- Script includes built-in rate limiting (200ms between Places API calls)
+- Reduce number of categories to research
+- Run research in smaller batches
 
 ## See Also
 
