@@ -202,12 +202,25 @@ chat-web-travels/
 
 AI agents can access GitHub secrets (like API keys) when executing scripts in the repository context. This is particularly useful for skills that require external API access.
 
+### Agent Configuration
+
+**Configuration File**: `.github/agents/config.yml`
+
+This repository has a GitHub agent configuration that automatically maps repository secrets to environment variables for AI agents. The configuration includes:
+
+- Environment variable mappings (e.g., `GOOGLE_MAPS_API_KEY`)
+- Agent permissions (secrets read, actions write, contents read)
+- Skills and their required environment variables
+
+See [.github/agents/README.md](.github/agents/README.md) for complete documentation on agent configuration.
+
 ### Accessing Secrets
 
 **Environment Variables**: Secrets are exposed as environment variables when:
 - You're authenticated with GitHub CLI (`gh auth login`)
 - You have access to the repository
 - The secret exists in repository settings
+- The secret is mapped in `.github/agents/config.yml`
 
 **Example**: The `GOOGLE_MAPS_API_KEY` secret is automatically available to scripts:
 
@@ -267,11 +280,17 @@ To add a new secret for AI agents to use:
 1. Go to repository Settings → Secrets and variables → Actions
 2. Click "New repository secret"
 3. Enter name (e.g., `API_KEY_NAME`) and value
-4. The secret will be available to AI agents via `process.env.API_KEY_NAME`
+4. Add the secret to `.github/agents/config.yml`:
+   ```yaml
+   env:
+     API_KEY_NAME: ${{ secrets.API_KEY_NAME }}
+   ```
+5. The secret will be available to AI agents via `process.env.API_KEY_NAME`
 
 **Security Note**: Never commit secrets to code. Always use environment variables and verify secrets are listed in `.gitignore`.
 
-For detailed information about using the Google Maps API key with AI agents, see:
+For detailed information about agent configuration and using secrets, see:
+- [GitHub Agent Configuration](.github/agents/README.md)
 - [Using GitHub Secrets with AI Agents](.github/skills/road-trip-research/scripts/use-google-maps-secret.md)
 - [Google Maps API Documentation](.github/skills/road-trip-research/scripts/README-google-maps.md)
 
