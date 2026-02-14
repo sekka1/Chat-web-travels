@@ -1,0 +1,41 @@
+# GitHub Agent Configuration
+# This file configures environment variables for GitHub agents working on this repository
+
+# Environment variables that should be made available to agents
+env:
+  # Google Maps API key for road-trip-research and location-based skills
+  # This secret is required for:
+  # - .github/skills/road-trip-research (Directions API, Places API)
+  # - Testing Google Maps integration
+  # - Route planning and POI discovery
+  GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+# Agent permissions and capabilities
+permissions:
+  # Allow agents to read repository secrets
+  secrets: read
+
+  # Allow agents to execute scripts and workflows
+  actions: write
+
+  # Allow agents to access repository contents
+  contents: read
+
+# Skills that require environment variables
+skills:
+  - name: road-trip-research
+    description: Research things to do along a driving route
+    required_env:
+      - GOOGLE_MAPS_API_KEY
+
+  - name: city-research
+    description: Research activities and attractions in a city
+    required_env: []
+
+  - name: google-search-scraper
+    description: Perform Google searches and scrape results
+    required_env: []
+
+  - name: web-content-scraper
+    description: Scrape content from web pages
+    required_env: []
